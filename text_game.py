@@ -371,7 +371,7 @@ class Battle:
         # Then averaged out
         averageStats = 0
         for p in party:
-            averageStats += v.attack + v.defense + v.health + v.magic + v.speed
+            averageStats += p.attack + p.defense + p.health + p.magic + p.speed
 
         averageStats /= len(party)
         print(averageStats)
@@ -482,7 +482,7 @@ class Game:
     def inputCommand(self, command):
 
         try:
-            if self.battles[command[1]].battle_won:
+            if self.battles[command[1]].battle_complete:
                 raise BattleComplete
             cur_party = self.battles[command[1]]
             print(cur_party)
