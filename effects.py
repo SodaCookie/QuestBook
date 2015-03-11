@@ -4,6 +4,9 @@ class Effect:
         self.name = name
         self.duration = duration
 
+    def on_start_turn(self, battle, character):
+        pass
+
     def on_damage(self, battle, damage):
         return damage
 
@@ -11,9 +14,10 @@ class Effect:
         return heal
 
     def on_death(self, battle, character):
-        pass
+        """If truly dead then return True"""
+        return True
 
-    def on_turn(self, start, character):
+    def on_end_turn(self, start, character):
         pass
 
 class Blocking(Effect):
