@@ -7,7 +7,7 @@ import time
 import copy
 import effects
 
-POWER_BASE = 1.2 # Used to measure the difficulty of monsters of different difficulty: 20% more stats
+POWER_BASE = 2 # Used to measure the difficulty of monsters of different difficulty: 20% more stats
 ATTACK_HEURISTIC = 1 # Used to gauge how useful attack is as a stat
 DEFENSE_HEURISTIC = 1 # Used to gauge how useful defense is as a stat
 HEALTH_HEURISTIC = 0.2 # Used to gauge how useful health is as a stat
@@ -360,7 +360,15 @@ class Battle:
     def __init__(self, party, difficulty):
         self.party = party
         self.difficulty = difficulty
-        self.monster = Monster(difficulty, "", 50)
+        # Sum of attack, defense, health, magic and speed for all players
+        # Then averaged out
+        averageStats = 0
+        for p in party:
+            averageStats += v.attack + v.defense + v.health + v.magic + v.speed
+
+        averageStats /= len(party)
+        print(averageStats)
+        self.monster = Monster(difficulty, "", averageStats)
         self.commands = {}
         for member in self.party:
             self.commands[member.name] = "attack"
@@ -506,7 +514,7 @@ if __name__ == "__main__":
     PORT = 34567
     handler = GameHTTPRequestHandler
     try:
-        httpd = server.HTTPServer(("192.168.1.106", PORT), handler)
+        httpd = server.HTTPServer(("", PORT), handler)
         print('Started http server')
         httpd.serve_forever()
     except KeyboardInterrupt:
