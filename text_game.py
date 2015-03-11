@@ -525,7 +525,6 @@ class Game:
     def handleBattle(self, command):
         cur_party = self.battles[command[1]]
         if command[0] == "stop-game":
-            self.battles[command[1]] = None
             return "Game session ended. :("
         elif command[0] == "next":
             return self.battles[command[1]].nextTurn()
