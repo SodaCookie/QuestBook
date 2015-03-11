@@ -1,0 +1,6 @@
+Dragon
+Goblin
+Hobgoblin
+Drake
+Hatchling
+Slime

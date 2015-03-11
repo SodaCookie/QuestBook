@@ -1,0 +1,4 @@
+Add class Moves that will change add possible movesets
+Handle experience and items
+create evaluation for difficulty
+Test if effects works
