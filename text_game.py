@@ -14,6 +14,9 @@ HEALTH_HEURISTIC = 0.2 # Used to gauge how useful health is as a stat
 SPEED_HEURISTIC = 5 # Used to gauge how useful speed is as a stat
 MAGIC_HEURISTIC = 0.5  # Used to gauge how useful magic is as a stat
 
+class BattleComplete(Exception):
+    pass
+
 class GameHTTPRequestHandler(server.BaseHTTPRequestHandler):
 
     def do_GET(self):
@@ -354,6 +357,10 @@ class Item:
                 self.name = self.name + " " + self.chosen_presuffix
             self.name = self.name + " " + self.chosen_suffix
 
+    def getStats(self):
+        return 'Attack: %d\nDefense: %d\nHealth: %d\nSpeed: %d\nMagic: %d'\
+     % (self.attack, self.defense, self.health, self.speed, self.magic)
+
 
 class Battle:
 
@@ -369,6 +376,8 @@ class Battle:
         averageStats /= len(party)
         print(averageStats)
         self.monster = Monster(difficulty, "", averageStats)
+        self.battle_complete = False
+        self.monster = Monster(difficulty, "", 50)
         self.commands = {}
         for member in self.party:
             self.commands[member.name] = "attack"
@@ -389,6 +398,28 @@ class Battle:
                 log += self.handleMonster(character)
             elif type(character) == Player:
                 log += self.handlePlayer(character)
+            for character in tmp_list:
+                if character.current_health <= 0:
+                    if type(character) == Monster:
+                        for effect in character.effects:
+                            if not effect.on_death(self, character):
+                                break
+                        else:
+                            log += character.name + " has fallen.\nVictory!\n"
+                            self.battle_complete = True
+                    elif type(character) == Player:
+                        for effect in character.effects:
+                            if not effect.on_death(self, character):
+                                break
+                        else:
+                            log += character.name + " has fallen.\n"
+
+        if self.battle_complete:
+            for member in self.party:
+                tmp_item = Item(50, self.difficulty)
+                send += "@@" + member.name
+                send += "@@" + "You found: " + tmp_item.name + "\n" + tmp_item.getStats()
+            return log
 
         for member in self.party:
             self.commands[member.name] = "attack"
@@ -425,9 +456,6 @@ class Battle:
                 damage = effect.on_damage(self, damage)
             self.monster.current_health -= damage
             log += self.monster.name + " took %d damage.\n" % damage
-            if self.monster.current_health <= 0:
-                log += self.monster.name + " has fallen.\n"
-
         elif self.commands[player.name] == "defend":
             if "defending" not in character.effects:
                 character.effects.append(effect.Blocking(2, 0.5)) # It needs two because itll decay by one
@@ -452,13 +480,19 @@ class Game:
             return self.inputCommand(command.split(' '))
 
     def inputCommand(self, command):
+
         try:
+            if self.battles[command[1]].battle_won:
+                raise BattleComplete
             cur_party = self.battles[command[1]]
             print(cur_party)
             if cur_party:
                 return self.handleBattle(command)
         except KeyError:
             pass
+        except BattleComplete:
+            self.battles[command[1]] = None # Remove the battle
+
         if command[0] == "start-game":
             try:
                 if command[2] not in ("normal", "hard", "boss"):
