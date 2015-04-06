@@ -43,18 +43,9 @@ class Battle:
     def __init__(self, party, difficulty):
         self.party = party
         self.difficulty = difficulty
-        # Sum of attack, defense, health, magic and speed for all players
-        # Then averaged out
-        averageStats = 0
-        for p in party:
-            averageStats += p.attack + p.defense + p.health + p.magic + p.speed
-
-        averageStats /= len(party)
-        print(averageStats)
-        self.monster = Monster(difficulty, "", averageStats)
+        self.monster = Monster(difficulty, "", party)
         self.battle_lost = False
         self.battle_won = False
-        self.monster = Monster(difficulty, "", 50)
 
     def newCommand(self, command): # ,thread_id, player_id, Move, ... args
         for member in self.party:
