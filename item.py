@@ -1,3 +1,5 @@
+import random
+
 class Item:
 
     def __init__(self, power=0, difficulty=1, generate=True):
@@ -27,82 +29,10 @@ class Item:
         self.chosen_presuffix = ""
         self.chosen_suffix = ""
         if generate:
-            self.generateName()
-            self.generateStats()
+            self.generate()
 
-    def generateStats(self):
-        if self.rarity == "legendary":
-            self.power = self.power*POWER_BASE**3
-        elif self.rarity == "epic":
-            self.power = self.power*POWER_BASE**2
-        elif self.rarity == "rare":
-            self.power = self.power*POWER_BASE
-        elif self.rarity == "normal":
-            pass
-        self.power = self.power*self.base
-
-        if self.chosen_item in ["Sword", "Dagger", "Axe", "Greatsword", "Spear", "Staff", "Wand", "Spellbook", "Crystal", "Doll", "Shield", "Tower Shield"]:
-            self.slot = "hand"
-        elif self.chosen_item in ["Armor"]:
-            self.slot = "body"
-        elif self.chosen_item in ["Pants", "Leggings"]:
-            self.slot = "legs"
-        elif self.chosen_item in ["Boots"]:
-            self.slot = "feet"
-        elif self.chosen_item in ["Gloves"]:
-            self.slot = "arms"
-        elif self.chosen_item in ["Helm"]:
-            self.slot = "head"
-        elif self.chosen_item in ["Necklace", "Ring", "Earring"]:
-            self.slot = "extra"
-
-        if self.paradigm == "attack":
-            self.attack_weight = 2
-            self.defense_weight = 0.1
-            self.health_weight = 0.1
-            self.speed_weight = 0.1
-            self.magic_weight = 0.1
-            self.ability_weight = 1
-        elif self.paradigm == "defense":
-            self.attack_weight = 0.1
-            self.defense_weight = 1.5
-            self.health_weight = 1.5
-            self.speed_weight = 0.1
-            self.magic_weight = 0.1
-            self.ability_weight = 1
-        elif self.paradigm == "support":
-            self.attack_weight = 0.1
-            self.defense_weight = 1
-            self.health_weight = 1
-            self.speed_weight = 1.1
-            self.magic_weight = 1.1
-            self.ability_weight = 2
-        elif self.paradigm == "magical":
-            self.attack_weight = 0.5
-            self.defense_weight = 0.2
-            self.health_weight = 0.2
-            self.speed_weight = 1
-            self.magic_weight = 2
-            self.ability_weight = 2
-
-        # FINISH ADD STAT CHANGES IN WEIGHT DEPENDING ON ITEM TYPE AND PREFFIXES
-
-        r1, r2, r3, r4, r5, r6 = [random.randint(0,100) for i in range(6)]
-        r1 = r1 * self.attack_weight
-        r2 = r2 * self.defense_weight
-        r3 = r3 * self.speed_weight
-        r4 = r4 * self.health_weight
-        r5 = r5 * self.magic_weight
-        r6 = r6 * self.ability_weight
-        s = r1 + r2 + r3 + r4 + r5 + r6 # Divide the power into 6 random parts
-
-        self.attack = round(self.power*r1/s/ATTACK_HEURISTIC)
-        self.defense = round(self.power*r2/s/DEFENSE_HEURISTIC)
-        self.health = round(self.power*r3/s/HEALTH_HEURISTIC)
-        self.speed = round(self.power*r4/s/SPEED_HEURISTIC)
-        self.magic = round(self.power*r5/s/MAGIC_HEURISTIC)
-
-    def generateName(self):
+    def generate(self):
+        # difficulty rolling for item rarity
         rarity_roll = random.randint(0,1000)
         if self.difficulty == 1:
             if rarity_roll > 990:
@@ -131,16 +61,29 @@ class Item:
                 self.rarity = "rare"
 
         self.paradigm = random.choice(("attack", "defense", "support", "magical"))
-
-        if self.paradigm == "attack":
-            items = ["Sword", "Dagger", "Axe", "Greatsword", "Spear"]
-        elif self.paradigm == "defense":
-            items = ["Shield", "Armor", "Gloves", "Leggings", "Helm", "Boots", "Tower Shield", "Pants"]
-        elif self.paradigm == "support":
-            items = ["Necklace", "Ring", "Earring"]
-        elif self.paradigm == "magical":
-            items = ["Staff", "Wand", "Spellbook", "Crystal", "Doll"]
-
+        # parsing the itemtype file
+        with open("itemtypes.txt", "r") as f:
+            data = f.read().split("\n")
+            itemtypes = []
+            for line in data:
+                stats = line.split(",")
+                item = stats[0]
+                paradigm = stats[1]
+                slot = stats[2]
+                base = float(stats[3])
+                attack = float(stats[4])
+                defense = float(stats[5])
+                health = float(stats[6])
+                speed = float(stats[7])
+                magic = float(stats[8])
+                ability = float(stats[9])
+                moves = eval(stats[10]) # interprets a list
+                itemtypes.append([item, paradigm, slot, base, attack, defense, health, speed, magic, ability, moves])
+        # Choosing the item type of choice
+        itemtype = random.choice(itemtypes)
+        while itemtype[1] != self.paradigm:
+            itemtype = random.choice(itemtypes)
+        # Naming the item
         prefix = []
         presuffix = []
         suffix = []
@@ -191,6 +134,52 @@ class Item:
                 self.name = self.name + " " + self.chosen_presuffix
             self.name = self.name + " " + self.chosen_suffix
 
+        if self.rarity == "legendary":
+            self.power = self.power*POWER_BASE**3
+        elif self.rarity == "epic":
+            self.power = self.power*POWER_BASE**2
+        elif self.rarity == "rare":
+            self.power = self.power*POWER_BASE
+        elif self.rarity == "normal":
+            pass
+        self.power = self.power*self.base
+        # type, paradigm, slot, multiplier, attack, defense, health, speed, magic, ability, abilities
+        if self.chosen_item in ["Sword", "Dagger", "Axe", "Greatsword", "Spear", "Staff", "Wand", "Spellbook", "Crystal", "Doll", "Shield", "Tower Shield"]:
+            self.slot = "hand"
+        elif self.chosen_item in ["Armor"]:
+            self.slot = "body"
+        elif self.chosen_item in ["Pants", "Leggings"]:
+            self.slot = "legs"
+        elif self.chosen_item in ["Boots"]:
+            self.slot = "feet"
+        elif self.chosen_item in ["Gloves"]:
+            self.slot = "arms"
+        elif self.chosen_item in ["Helm"]:
+            self.slot = "head"
+        elif self.chosen_item in ["Necklace", "Ring", "Earring"]:
+            self.slot = "extra"
+
+        # FINISH ADD STAT CHANGES IN WEIGHT DEPENDING ON ITEM TYPE AND PREFFIXES
+
+        r1, r2, r3, r4, r5, r6 = [random.randint(0,100) for i in range(6)]
+        r1 = r1 * self.attack_weight
+        r2 = r2 * self.defense_weight
+        r3 = r3 * self.speed_weight
+        r4 = r4 * self.health_weight
+        r5 = r5 * self.magic_weight
+        r6 = r6 * self.ability_weight
+        s = r1 + r2 + r3 + r4 + r5 + r6 # Divide the power into 6 random parts
+
+        self.attack = round(self.power*r1/s/ATTACK_HEURISTIC)
+        self.defense = round(self.power*r2/s/DEFENSE_HEURISTIC)
+        self.health = round(self.power*r3/s/HEALTH_HEURISTIC)
+        self.speed = round(self.power*r4/s/SPEED_HEURISTIC)
+        self.magic = round(self.power*r5/s/MAGIC_HEURISTIC)
+
     def getStats(self):
         return 'Attack: %d\nDefense: %d\nHealth: %d\nSpeed: %d\nMagic: %d'\
      % (self.attack, self.defense, self.health, self.speed, self.magic)
+
+if __name__ == "__main__":
+    i = Item(100, 3)
+    print(i.getStats())
