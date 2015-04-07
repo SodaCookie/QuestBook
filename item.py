@@ -220,4 +220,5 @@ class Item:
 
 if __name__ == "__main__":
     i = Item(100, 3)
+    print(i.name)
     print(i.getStats())

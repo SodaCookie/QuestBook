@@ -6,7 +6,7 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.effects = []
-        self.moves = [Damage("attack", self), DefyDeath("defy-death", self)]
+        self.moves = [Damage("attack", self), DamageSlow("ice-blast", 2, self), Block("block", 2, self), Shield("shield", 3, self), Toxic("toxic", 3, self, 2)]
         self.args = []
         self.default_move = self.moves[0]
         self.next_move = self.default_move
@@ -16,7 +16,6 @@ class Player:
         self.current_health = 100
         self.health = 100
         self.speed = 10
-
         self.experience = 0
         self.level = 1
 
@@ -77,11 +76,35 @@ class Player:
     def deal_damage(self, battle, damage, damage_type):
         for effect in self.effects:
             damage = effect.on_damage(battle, damage, damage_type)
-        damage = damage - self.defense
+        damage = damage - self.get_defense()
         if damage <= 0:
             damage = 1
         self.current_health -= damage
         return damage
+
+    def get_attack(self):
+        attack = self.attack
+        for effect in self.effects:
+            attack = effect.on_get_stat(attack, "attack")
+        return attack
+
+    def get_defense(self):
+        defense = self.defense
+        for effect in self.effects:
+            defense = effect.on_get_stat(defense, "defense")
+        return defense
+
+    def get_speed(self):
+        speed = self.speed
+        for effect in self.effects:
+            speed = effect.on_get_stat(speed, "speed")
+        return speed
+
+    def get_magic(self):
+        magic = self.magic
+        for effect in self.effects:
+            magic = effect.on_get_stat(magic, "magic")
+        return magic
 
     def set_args(*args):
         self.args = args

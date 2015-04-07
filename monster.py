@@ -97,7 +97,7 @@ class Monster:
     def deal_damage(self, battle, damage, damage_type):
         for effect in self.effects:
             damage = effect.on_damage(battle, damage, damage_type)
-        damage = damage - self.defense
+        damage = damage - self.get_defense()
         if damage <= 0:
             damage = 1
         self.current_health -= damage
@@ -119,6 +119,30 @@ class Monster:
         self.next_move = self.default_move
         self.args = []
         return log
+
+    def get_attack(self):
+        attack = self.attack
+        for effect in self.effects:
+            attack = effect.on_get_stat(attack, "attack")
+        return attack
+
+    def get_defense(self):
+        defense = self.defense
+        for effect in self.effects:
+            defense = effect.on_get_stat(defense, "defense")
+        return defense
+
+    def get_speed(self):
+        speed = self.speed
+        for effect in self.effects:
+            speed = effect.on_get_stat(speed, "speed")
+        return speed
+
+    def get_magic(self):
+        magic = self.magic
+        for effect in self.effects:
+            magic = effect.on_get_stat(magic, "magic")
+        return magic
 
     def set_args(*args):
         self.args = args

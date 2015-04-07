@@ -62,16 +62,20 @@ class Battle:
 
     def nextTurn(self):
         tmp_list = [member for member in self.party]+[self.monster] # Sorting by speed
-        tmp_list.sort(key=lambda x: x.speed, reverse=True)
+        tmp_list.sort(key=lambda x: x.get_speed(), reverse=True)
         log = ""
         for character in tmp_list:
             skip_player_turn = False
             for effect in character.effects:
-                if effect.on_start_turn == False:
+                cont, msg = effect.on_start_turn(self, character)
+                log += msg
+                if cont == False:
                     skip_player_turn = True
             if skip_player_turn:
                 continue
             log += character.handle(self) + "\n"
+            for effect in character.effects:
+                log += effect.on_end_turn(self, character)
             for character in tmp_list:
                 if character.current_health <= 0:
                     if type(character) == Monster:
