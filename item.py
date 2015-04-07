@@ -1,4 +1,5 @@
 import random
+from constants import *
 
 class Item:
 
@@ -25,9 +26,9 @@ class Item:
         self.other = 0
         self.base = 1 # used to amp total stats up and down (ie rusty vs shiny)
         self.chosen_item = ""
-        self.chosen_prefix = ""
-        self.chosen_presuffix = ""
-        self.chosen_suffix = ""
+        self.chosen_prefix = []
+        self.chosen_presuffix = []
+        self.chosen_suffix = []
         if generate:
             self.generate()
 
@@ -78,61 +79,115 @@ class Item:
                 magic = float(stats[8])
                 ability = float(stats[9])
                 moves = eval(stats[10]) # interprets a list
-                itemtypes.append([item, paradigm, slot, base, attack, defense, health, speed, magic, ability, moves])
+                if paradigm == self.paradigm:
+                    itemtypes.append([item, paradigm, slot, base, attack, defense, health, speed, magic, ability, moves])
         # Choosing the item type of choice
-        itemtype = random.choice(itemtypes)
-        while itemtype[1] != self.paradigm:
-            itemtype = random.choice(itemtypes)
+        self.chosen_item = random.choice(itemtypes)
         # Naming the item
-        prefix = []
-        presuffix = []
-        suffix = []
-        if self.rarity == "normal":
-            prefix = ["Apprentice", "Simple", "Carved", "Worn", "Broken"]
-            if self.paradigm == "magical" or self.paradigm == "support":
-                prefix += ["Weak", "Acolyte", "Lesser"]
-            else:
-                prefix += ["Rusty", "Rusted"]
-            if random.randint(0,10000) < 1:
-                prefix += ["NOOB"]
+        with open("itemprefix.txt", "r") as f:
+            data = f.read().split("\n")
+            itemprefixes = []
+            for line in data:
+                stats = line.split(",")
+                name = stats[0]
+                rarity = stats[1]
+                paradigm = stats[2]
+                weapon = stats[3]
+                base = float(stats[4])
+                attack = float(stats[5])
+                defense = float(stats[6])
+                health = float(stats[7])
+                speed = float(stats[8])
+                magic = float(stats[9])
+                ability = float(stats[10])
+                moves = eval(stats[11])
+                if (weapon == self.chosen_item[0] or weapon == "any") and (paradigm == self.paradigm or paradigm == "any") and rarity == self.rarity:
+                    itemprefixes.append([name, rarity, paradigm, weapon, base, attack, defense, health, speed, magic, ability, moves])
+        with open("itempresuffix.txt", "r") as f:
+            data = f.read().split("\n")
+            itempresuffixes = []
+            for line in data:
+                stats = line.split(",")
+                name = stats[0]
+                rarity = stats[1]
+                paradigm = stats[2]
+                weapon = stats[3]
+                base = float(stats[4])
+                attack = float(stats[5])
+                defense = float(stats[6])
+                health = float(stats[7])
+                speed = float(stats[8])
+                magic = float(stats[9])
+                ability = float(stats[10])
+                moves = eval(stats[11])
+                if (weapon == self.chosen_item[0] or weapon == "any") and (paradigm == self.paradigm or paradigm == "any") and rarity == self.rarity:
+                    itempresuffixes.append([name, rarity, paradigm, weapon, base, attack, defense, health, speed, magic, ability, moves])
+        with open("itemsuffix.txt", "r") as f:
+            data = f.read().split("\n")
+            itemsuffixes = []
+            for line in data:
+                stats = line.split(",")
+                name = stats[0]
+                rarity = stats[1]
+                paradigm = stats[2]
+                weapon = stats[3]
+                base = float(stats[4])
+                attack = float(stats[5])
+                defense = float(stats[6])
+                health = float(stats[7])
+                speed = float(stats[8])
+                magic = float(stats[9])
+                ability = float(stats[10])
+                moves = eval(stats[11])
+                if (weapon == self.chosen_item[0] or weapon == "any") and (paradigm == self.paradigm or paradigm == "any") and rarity == self.rarity:
+                    itemsuffixes.append([name, rarity, paradigm, weapon, base, attack, defense, health, speed, magic, ability, moves])
 
-        elif self.rarity == "rare":
-            prefix = ["Light", "Fire", "Ice", "Lightning", "Dark", "Gilded", "Silver", "Polished", "Emerald"]
-            if self.paradigm == "magical":
-                prefix += ["Wizard", "Bewitching", "Magical", "Greater", "Elemental"]
-            else:
-                prefix += ["Hero", "Gleaming", "Steel", "Chain"]
-
-        elif self.rarity == "epic":
-            prefix = ["Solar", "Sacred", "Glacial", "Thunderous", "Shadow", "Gilded", "Golden", "Shining", "Crystal", "Forest", "Inferno", "Heavenly"]
-            if self.paradigm == "magical":
-                prefix += ["Master", "Bewitching", "Magical", "Greatest", "Force", "Elemental", "Necromancer"]
-            else:
-                prefix += ["Dragon", "Humanity", "Mythril", "Challenging"]
-            suffix = ["Heroes", "Flare", "Power", "Intelligence", "Brawn", "Spellweaving", "Rest", "Tranquility"]
-
-        elif self.rarity == "legendary":
-            prefix = ["Solar", "Sacred", "Tidal", "Thunderous", "Infinity", "Abysal", "Overwhelming", "Unmovable", "Shining", "Perfect", "Nature", "Inferno", "Heavenly", "Judgement",\
-                      "Earthshattering", "Hell-Forged", "Dragon Aspect", "Godly", "Temporal"]
-            if self.paradigm == "magical":
-                prefix += ["Masterful", "Greatest Bewitching", "Magical", "Imperial", "Ultimate", "Force", "Elemental", "Necromancer"]
-            else:
-                prefix += ["Dragon", "Worldly", "Runic", "Skyward", "Gravity", "Time"]
-            suffix = ["Tundra", "Flare", "Power", "Intelligence", "Brawn", "Spellweaving", "Heaven", "Tranquility", "Time", "God", "Shadow", "Hell", "Space"]
-            presuffix = ["Fiery", "Glacial", "Infinite", "Earthly", "Sacred", "Master", "Elemental", "Burning", "Halt", "Stop"]
-
-        self.chosen_item = random.choice(items)
-        self.name = self.chosen_item
-        if prefix:
-            self.chosen_prefix = random.choice(prefix)
-            self.name = self.chosen_prefix + " " + self.name
-        if suffix:
-            self.chosen_suffix = random.choice(suffix)
-            self.name = self.name + " of"
-            if presuffix:
-                self.chosen_presuffix = random.choice(presuffix)
-                self.name = self.name + " " + self.chosen_presuffix
-            self.name = self.name + " " + self.chosen_suffix
+        self.name = self.chosen_item[0]
+        if itemprefixes: self.chosen_prefix = random.choice(itemprefixes)
+        if itempresuffixes: self.chosen_presuffix = random.choice(itempresuffixes)
+        if itemsuffixes: self.chosen_suffix = random.choice(itemsuffixes)
+        self.base = self.chosen_item[3]
+        self.attack_weight = self.chosen_item[4]
+        self.defense_weight = self.chosen_item[5]
+        self.health_weight = self.chosen_item[6]
+        self.speed_weight = self.chosen_item[7]
+        self.magic_weight = self.chosen_item[8]
+        self.ability_weight = self.chosen_item[9]
+        if self.chosen_prefix:
+            self.name = self.chosen_prefix[0] + " " + self.name
+            self.base *= self.chosen_prefix[4]
+            self.attack_weight += self.chosen_prefix[5]
+            self.defense_weight += self.chosen_prefix[6]
+            self.health_weight += self.chosen_prefix[7]
+            self.speed_weight += self.chosen_prefix[8]
+            self.magic_weight += self.chosen_prefix[9]
+            self.ability_weight += self.chosen_prefix[10]
+        if self.chosen_presuffix:
+            self.name = self.name + " of " + self.chosen_presuffix[0] + " " + self.chosen_suffix[0]
+            self.base *= self.chosen_presuffix[4]
+            self.attack_weight += self.chosen_presuffix[5]
+            self.defense_weight += self.chosen_presuffix[6]
+            self.health_weight += self.chosen_presuffix[7]
+            self.speed_weight += self.chosen_presuffix[8]
+            self.magic_weight += self.chosen_presuffix[9]
+            self.ability_weight += self.chosen_presuffix[10]
+            # Suffix weights added
+            self.base *= self.chosen_suffix[4]
+            self.attack_weight += self.chosen_suffix[5]
+            self.defense_weight += self.chosen_suffix[6]
+            self.health_weight += self.chosen_suffix[7]
+            self.speed_weight += self.chosen_suffix[8]
+            self.magic_weight += self.chosen_suffix[9]
+            self.ability_weight += self.chosen_suffix[10]
+        elif self.chosen_suffix:
+            self.name = self.name + " of " + self.chosen_suffix[0]
+            self.base *= self.chosen_prefix[4]
+            self.attack_weight += self.chosen_suffix[5]
+            self.defense_weight += self.chosen_suffix[6]
+            self.health_weight += self.chosen_suffix[7]
+            self.speed_weight += self.chosen_suffix[8]
+            self.magic_weight += self.chosen_suffix[9]
+            self.ability_weight += self.chosen_suffix[10]
 
         if self.rarity == "legendary":
             self.power = self.power*POWER_BASE**3
@@ -143,23 +198,6 @@ class Item:
         elif self.rarity == "normal":
             pass
         self.power = self.power*self.base
-        # type, paradigm, slot, multiplier, attack, defense, health, speed, magic, ability, abilities
-        if self.chosen_item in ["Sword", "Dagger", "Axe", "Greatsword", "Spear", "Staff", "Wand", "Spellbook", "Crystal", "Doll", "Shield", "Tower Shield"]:
-            self.slot = "hand"
-        elif self.chosen_item in ["Armor"]:
-            self.slot = "body"
-        elif self.chosen_item in ["Pants", "Leggings"]:
-            self.slot = "legs"
-        elif self.chosen_item in ["Boots"]:
-            self.slot = "feet"
-        elif self.chosen_item in ["Gloves"]:
-            self.slot = "arms"
-        elif self.chosen_item in ["Helm"]:
-            self.slot = "head"
-        elif self.chosen_item in ["Necklace", "Ring", "Earring"]:
-            self.slot = "extra"
-
-        # FINISH ADD STAT CHANGES IN WEIGHT DEPENDING ON ITEM TYPE AND PREFFIXES
 
         r1, r2, r3, r4, r5, r6 = [random.randint(0,100) for i in range(6)]
         r1 = r1 * self.attack_weight
