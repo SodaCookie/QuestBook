@@ -219,6 +219,7 @@ class Item:
      % (self.attack, self.defense, self.health, self.speed, self.magic)
 
 if __name__ == "__main__":
-    i = Item(100, 3)
-    print(i.name)
-    print(i.getStats())
+    for i in range(100):
+        i = Item(100, 3)
+        print(i.name)
+        print(i.getStats())
