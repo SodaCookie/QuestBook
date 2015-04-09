@@ -22,7 +22,7 @@ class Block(Move):
 
     def cast(self, *args):
         self.caster.add_effect(effects.Blocking(self.duration, 0.5, "physical"))
-        return self.caster + " has taken a defensive pose."
+        return self.caster.name + " has taken a defensive pose."
 
 
 class Shield(Move):

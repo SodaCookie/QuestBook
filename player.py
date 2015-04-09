@@ -1,5 +1,6 @@
 from item import *
 from moves import *
+from constants import *
 
 class Player:
 
@@ -17,7 +18,6 @@ class Player:
         self.health = 100
         self.speed = 10
         self.experience = 0
-        self.level = 1
 
         self.equipment = {}
         self.equipment["hand1"] = Item(generate=False)
@@ -39,7 +39,8 @@ class Player:
             self.magic += item.magic
 
     def equip(item, slot):
-        if self.equipment.get(slot) and self.equipment[slot] != "":
+        """Try to equip item into the slot"""
+        if self.equipment.get(item.slot):
             equipable = False
             if item.slot == "any":
                 equipable = True
@@ -59,6 +60,8 @@ class Player:
                 equipable == True
             if equipable:
                 self.equipment[slot] = item
+                return True
+        return False
 
     def handle(self, battle):
         log = ""
@@ -106,12 +109,21 @@ class Player:
             magic = effect.on_get_stat(magic, "magic")
         return magic
 
+    def get_level(self):
+        return int(LEVEL_CONSTANT*math.sqrt(xp))+1
+
     def set_args(*args):
         self.args = args
 
     def add_effect(self, effect):
         self.effects.append(effect)
 
+    def save(self):
+        pass
+
+    def load(self, file):
+        pass
+
     def getStats(self):
         return ' | EXP: %d | LVL %d\n========================\nAttack: %d\nDefense: %d\nHealth: %d\\%d\nSpeed: %d\nMagic: %d'\
-     % (self.experience, self.level, self.attack, self.defense, self.current_health, self.health, self.speed, self.magic)
+     % (self.experience, self.get_level(), self.attack, self.defense, self.current_health, self.health, self.speed, self.magic)
