@@ -8,6 +8,7 @@ class Player:
         self.name = name
         self.effects = []
         self.moves = [Damage("attack", self), DamageSlow("ice-blast", 2, self), Block("block", 2, self), Shield("shield", 3, self), Toxic("toxic", 3, self, 2)]
+        self.drop = None # tmp variable for dropped items
         self.args = []
         self.default_move = self.moves[0]
         self.next_move = self.default_move
@@ -18,6 +19,7 @@ class Player:
         self.health = 100
         self.speed = 10
         self.experience = 0
+        self.level = 1
 
         self.equipment = {}
         self.equipment["hand1"] = Item(generate=False)
@@ -38,30 +40,15 @@ class Player:
             self.speed += item.speed
             self.magic += item.magic
 
-    def equip(item, slot):
+    def config_for_new_battle(self):
+        self.current_health = self.health
+        self.drop = None
+        self.effects = []
+        self.update()
+
+    def equip(item):
         """Try to equip item into the slot"""
-        if self.equipment.get(item.slot):
-            equipable = False
-            if item.slot == "any":
-                equipable = True
-            elif item.slot == "hand" and (slot == "hand1" or slot == "hand2"):
-                equipable == True
-            elif item.slot == "body" and slot == "body":
-                equipable == True
-            elif item.slot == "legs" and slot == "legs":
-                equipable == True
-            elif item.slot == "feet" and slot == "feet":
-                equipable == True
-            elif item.slot == "arms" and slot == "arms":
-                equipable == True
-            elif item.slot == "head" and slot == "head":
-                equipable == True
-            elif item.slot == "extra" and (slot == "extra1" or slot == "extra2"):
-                equipable == True
-            if equipable:
-                self.equipment[slot] = item
-                return True
-        return False
+        self.equipment[item.slot] = item
 
     def handle(self, battle):
         log = ""
@@ -89,28 +76,54 @@ class Player:
         attack = self.attack
         for effect in self.effects:
             attack = effect.on_get_stat(attack, "attack")
-        return attack
+        return int(attack)
 
     def get_defense(self):
         defense = self.defense
         for effect in self.effects:
             defense = effect.on_get_stat(defense, "defense")
-        return defense
+        return int(defense)
 
     def get_speed(self):
         speed = self.speed
         for effect in self.effects:
             speed = effect.on_get_stat(speed, "speed")
-        return speed
+        return int(speed)
 
     def get_magic(self):
         magic = self.magic
         for effect in self.effects:
             magic = effect.on_get_stat(magic, "magic")
-        return magic
+        return int(magic)
 
     def get_level(self):
         return int(LEVEL_CONSTANT*math.sqrt(xp))+1
+
+    def is_level_up(self):
+        if self.get_level() > self.level:
+            return True
+        return False
+
+    def level_up(self):
+        for i in range(self.get_level() - self.level):
+            for item in self.equipment.values():
+                attack += item.attack
+                defense += item.defense
+                health += item.health
+                speed += item.speed
+                magic += item.magic
+            total = attack + defense + health + speed + magic
+            attack_weight = attack/total
+            defense_weight = defense/total
+            health_weight = health/total
+            speed_weight = speed/total
+            magic_weight = magic/total
+            self.attack += attack_weight * POINTS_PER_LEVEL
+            self.defense += defense_weight * POINTS_PER_LEVEL
+            self.health += health_weight * POINTS_PER_LEVEL
+            self.speed += speed_weight * POINTS_PER_LEVEL
+            self.magic += magic_weight * POINTS_PER_LEVEL
+        self.level = self.get_level();
 
     def set_args(*args):
         self.args = args

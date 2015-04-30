@@ -42,12 +42,14 @@ class Battle:
 
     def __init__(self, party, difficulty):
         self.party = party
+        for player in self.party:
+            player.config_for_new_battle()
         self.difficulty = difficulty
         self.monster = Monster(difficulty, "", party)
         self.battle_lost = False
         self.battle_won = False
 
-    def newCommand(self, command): # ,thread_id, player_id, Move, ... args
+    def newCommand(self, command): # thread_id, player_id, Move, ... args
         for member in self.party:
             if command[1] == member.name:
                 player = member
@@ -112,10 +114,14 @@ class Battle:
             for member in self.party:
                 if member not in self.getDeadPlayers():
                     tmp_item = Item(50, self.difficulty)
+                    member.drop = tmp_item
                     send += "@@" + member.name
                     send += "@@" + "You found: " + tmp_item.name + "\n" + tmp_item.getStats()
+                    send += "\nTo equip type \\yes, to drop the item type \\no. Note starting a new game will remove your drop."
         if self.battle_lost:
-            pass
+            for member in self.party:
+                send += "@@" + player.name
+                send += "@@" + "Your character is dead."
         return send
 
 
@@ -125,13 +131,14 @@ class Game:
         # name, attack, defense, speed, health, slot, other
         self.battles = {}
         self.players = {}
-##        with open("players.dat", "rb") as f:
-##            self.players = pickle.load(f)
+        self.return_data = ""
 
     def handle(self, command):
         if command != "":
             print(command)
-            return self.inputCommand(command.split(' '))
+            self.return_data = ""
+            self.return_data = self.inputCommand(command.split(' '))
+            return self.return_data
 
     def inputCommand(self, command):
 
@@ -149,8 +156,6 @@ class Game:
             send += self._get_party(command).handleFinish()
             for player in self._get_party(command).getDeadPlayers():
                 self.removePlayer(player)
-                send += "@@" + player.name
-                send += "@@" + "Your character is dead."
             self._remove_party(command)
             return send
 
@@ -179,8 +184,14 @@ class Game:
 
         elif command[2] == "stop-game":
             return "You are not in a game! Why are you trying to stop it!"
-        elif command[2] == "help":
-            pass
+        elif command[0] == command[1]: # Player chat
+            if command[2] == "yes":
+                if self.players[command[1]].drop != None:
+                    self.players[command[1]].equip(self.players[command[1]].drop)
+                    self.players[command[1]].drop = None # Remove the item from drop
+            elif command[2] == "no":
+                if self.players[command[1]].drop != None:
+                    self.players[command[1]].drop = None # Remove the item from drop
         else:
             return "Command doesn't exist. Please type in help for information."
 
