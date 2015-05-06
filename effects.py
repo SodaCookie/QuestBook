@@ -64,6 +64,16 @@ class Poison(Effect):
         return character.name + " was dealt " + str(damage) + " poison damage.\n"
 
 
+class Burn(Effect):
+
+    def __init__(self, duration, caster, target, ratio):
+        super().__init__("burning", duration)
+        self.damage = caster.get_magic() * ratio
+
+    def on_end_turn(self, battle, character):
+        damage = character.deal_damage(battle, self.damage, "fire")
+        return "\n" + character.name + " burned for " + str(damage) + " damage."
+
 class Armor(Effect):
 
     def __init__(self, duration, mod):

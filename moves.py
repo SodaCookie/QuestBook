@@ -56,18 +56,41 @@ class Move:
         pass
 
 
-class Effect(Move):
+class CastDynamicEffect(Move): # Dynamic effects get the castor's and target's stats past on to them
 
-    def __init__(self, name, effect):
-        super().__init__(name, move)
+    def __init__(self, name, effect, duration, text="", *args):
+        super().__init__(name)
         self.effect = effect
+        self.text = text # To be displaced when sucessful cast
+        self.duration = duration
+        self.args = args
 
     def _cast(self, *args):
         if self.target:
-            self.target.add_effect(self.effect)
-            self.message(self.caster.name + " cast " + self.effect.name.title() + " on " + self.target.name + ".")
+            tmp_effect = self.effect(self.duration, self.caster, self.target, *self.args)
+            self.target.add_effect(tmp_effect)
+            self.message(self.text)
         else:
             self.message("Couldn't find a target.")
+
+
+class CastEffect(Move):
+
+    def __init__(self, name, effect, duration, text="", *args):
+        super().__init__(name)
+        self.effect = effect
+        self.text = text # To be displaced when sucessful cast
+        self.duration = duration
+        self.args = args
+
+    def _cast(self, *args):
+        if self.target:
+            tmp_effect = self.effect(self.duration, *self.args)
+            self.target.add_effect(tmp_effect)
+            self.message(self.text)
+        else:
+            self.message("Couldn't find a target.")
+
 
 class Damage(Move):
 
@@ -110,86 +133,13 @@ class Recoil(Move):
         damage_dealt = self.caster.deal_damage(args[0], self.recoil*self.caster.get_attack(), self.rdtype)
         self.message(self.caster.name + " took " + str(damage_dealt) + " in recoil.")
 
-class DamageEffect(Damage):
-
-    def __init__(self, name, effect, scale=1):
-        super().__init__(name, scale)
-        self.effect = effect
-
-    def cast(self, *args):
-        target = self.get_target(*args)
-        if target:
-            damage_dealt = target.deal_damage(args[0], self.scale*self.caster.get_attack(), "physical")
-            target.add_effect(self.effect)
-            return self.caster.name + " dealt " + str(damage_dealt) + " to " + target.name + "."
-        return "Couldn't find a target."
-
 
 class MonsterDamage(Move):
 
-    def cast(self, *args):
+    def _cast(self, *args):
         target = random.choice(args[0].party)
         damage_dealt = target.deal_damage(args[0], self.caster.get_attack(), "physical")
-        return self.caster.name + " dealt " + str(damage_dealt) + " to " + target.name + "."
-
-
-class DamageMagic(Damage):
-
-    def __init__(self, name, percentage=0.8, dtype="magic", scale=1):
-        super().__init__(name, scale)
-        self.percentage = percentage
-        self.dtype = dtype
-
-    def cast(self, *args):
-        target = self.get_target(*args)
-        if target:
-            damage_dealt = target.deal_damage(args[0], self.scale*(self.caster.get_attack() * (1-self.percentage) + self.caster.get_magic() * self.percentage), self.dtype)
-            return self.caster.name + " dealt " + str(damage_dealt) + " " + self.dtype + " damage to " + target.name + "."
-        return "Couldn't find a target."
-
-class DamageEffectMagic(Damage):
-
-    def __init__(self, name, effect, percentage=0.8, dtype="magic", scale=1):
-        super().__init__(name)
-        self.percentage = percentage
-
-    def cast(self, *args):
-        target = self.get_target(*args)
-        if target:
-            damage_dealt = target.deal_damage(args[0], self.scale*(self.caster.get_attack() * (1-self.percentage) + self.caster.get_magic() * self.percentage), self.dtype)
-            target.add_effect(self.effect)
-            return self.caster.name + " dealt " + str(damage_dealt) + " " + self.dtype + " " +" damage to " + target.name + "."
-        return "Couldn't find a target."
-
-class DamageEffectDynamicMagic(Damage):
-
-    def __init__(self, name, effect, percentage=0.8, dtype="magic", scale=1):
-        super().__init__(name)
-        self.percentage = percentage
-
-    def cast(self, *args):
-        target = self.get_target(*args)
-        if target:
-            damage_dealt = target.deal_damage(args[0], self.scale*(self.caster.get_attack() * (1-self.percentage) + self.caster.get_magic() * self.percentage), self.dtype)
-            target.add_effect(self.effect)
-            return self.caster.name + " dealt " + str(damage_dealt) + " " + self.dtype + " " +" damage to " + target.name + "."
-        return "Couldn't find a target."
-
-class DamageRecoilMagic(Damage):
-
-    def __init__(self, name, recoil=0.1, percentage=0.8, dtype="magic", scale=1):
-        super().__init__(name, scale)
-        self.recoil = recoil
-        self.percentage = percentage
-        self.dtype = dtype
-
-    def cast(self, *args):
-        target = self.get_target(*args)
-        if target:
-            damage_dealt = target.deal_damage(args[0], self.scale*(self.caster.get_attack() * (1-self.percentage) + self.caster.get_magic() * self.percentage), self.dtype)
-            self_damage_dealt = target.deal_damage(args[0], self.recoil*damage_dealt, self.dtype)
-            return self.caster.name + " dealt " + str(damage_dealt) + " " + self.dtype + " " +" damage to " + target.name + ".\n" + self.caster.name + " took " + str(self_damage_dealt) + " in recoil."
-        return "Couldn't find a target."
+        self.message(self.caster.name + " dealt " + str(damage_dealt) + " to " + target.name + ".")
 
 
 if __name__ == "__main__":

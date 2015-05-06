@@ -77,7 +77,7 @@ class Battle:
                 skip_player_turn = True
             if skip_player_turn:
                 continue
-            log += character.handle(self)
+            log += character.handle(self) + "\n"
             for effect in character.effects:
                 log += effect.on_end_turn(self, character)
             for character in tmp_list:

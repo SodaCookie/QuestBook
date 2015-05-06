@@ -11,7 +11,7 @@ class Player:
         self.moves = []
         self.add_move(magic_skills[0])
         self.add_move(magic_skills[1])
-        self.add_move(magic_skills[2])
+        self.add_move(magic_skills[4])
         self.fallen = False
         self.drop = None # tmp variable for dropped items
         self.args = []
@@ -22,7 +22,7 @@ class Player:
         self.magic = 5
         self.current_health = 100
         self.health = 100
-        self.speed = 10
+        self.speed = 5
         self.experience = 0
         self.level = 1
 
