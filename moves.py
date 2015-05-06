@@ -101,7 +101,7 @@ class Damage(Move):
 
     def _cast(self, *args):
         if self.target:
-            damage_dealt = self.target.deal_damage(args[0], self.scale*self.caster.get_attack(), self.dtype)
+            damage_dealt = self.target.deal_damage(args[0], self.caster, self.scale*self.caster.get_attack(), self.dtype)
             self.message(self.caster.name + " dealt " + str(damage_dealt) + " to " + self.target.name + ".")
         self.message("Couldn't find a target.")
 
@@ -116,7 +116,7 @@ class MagicDamage(Move):
 
     def _cast(self, *args):
         if self.target:
-            damage_dealt = self.target.deal_damage(args[0], self.scale*(self.caster.get_attack() * (1-self.percentage) + self.caster.get_magic() * self.percentage), self.dtype)
+            damage_dealt = self.target.deal_damage(args[0], self.caster, self.scale*(self.caster.get_attack() * (1-self.percentage) + self.caster.get_magic() * self.percentage), self.dtype)
             self.message(self.caster.name + " dealt " + str(damage_dealt) + " " + self.dtype + " damage to " + self.target.name + ".")
         else:
             self.message("Couldn't find a target.")
@@ -130,7 +130,7 @@ class Recoil(Move):
         self.recoil = recoil
 
     def _cast(self, *args):
-        damage_dealt = self.caster.deal_damage(args[0], self.recoil*self.caster.get_attack(), self.rdtype)
+        damage_dealt = self.caster.deal_damage(args[0], self.caster, self.recoil*self.caster.get_attack(), self.rdtype)
         self.message(self.caster.name + " took " + str(damage_dealt) + " in recoil.")
 
 
@@ -138,10 +138,15 @@ class MonsterDamage(Move):
 
     def _cast(self, *args):
         target = random.choice(args[0].party)
-        damage_dealt = target.deal_damage(args[0], self.caster.get_attack(), "physical")
+        damage_dealt = target.deal_damage(args[0], self.caster, self.caster.get_attack(), "physical")
         self.message(self.caster.name + " dealt " + str(damage_dealt) + " to " + target.name + ".")
 
 
 if __name__ == "__main__":
     # Testing
     nmove = target_cast(damage(Move("test")))
+
+
+class CastEffectSelf(CastEffect):
+    def get_target(self, *args):
+        return self.caster

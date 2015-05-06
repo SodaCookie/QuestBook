@@ -96,9 +96,9 @@ class Monster:
         elif self.difficulty == 3:
             self.name = "%(prefix)s %(monster)s of %(suffix)s" % (choices)
 
-    def deal_damage(self, battle, damage, damage_type):
+    def deal_damage(self, battle, source, damage, damage_type):
         for effect in self.effects:
-            damage = effect.on_damage(battle, damage, damage_type)
+            damage = effect.on_damage(battle, source, damage, damage_type)
         damage = round(damage - self.get_defense())
         if damage <= 0:
             damage = 1
@@ -150,6 +150,10 @@ class Monster:
         self.args = args
 
     def add_effect(self, effect):
+        for eff in self.effects:
+            if eff.name == effect.name:
+                eff.duration = effect.duration
+                return
         self.effects.append(effect)
 
     def add_move(self, move):

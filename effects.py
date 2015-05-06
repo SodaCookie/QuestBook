@@ -14,7 +14,7 @@ class Effect:
         """Return a tuple index 0 true if you can go, return false if you can't (ie stun, dead), index 1 is the message"""
         return (True, "")
 
-    def on_damage(self, battle, damage, damage_type):
+    def on_damage(self, battle, source, damage, damage_type):
         return damage
 
     def on_heal(self, battle, heal):
@@ -36,7 +36,7 @@ class Blocking(Effect):
         self.percentage = percentage
         self.damage_type = damage_type
 
-    def on_damage(self, battle, damage, damage_type):
+    def on_damage(self, battle, source, damage, damage_type):
         if damage_type == self.damage_type:
             return damage*self.percentage
         return damage
@@ -53,25 +53,15 @@ class Slow(Effect):
             return value*self.mod
         return value
 
-class Poison(Effect):
-
-    def __init__(self, duration, damage):
-        super().__init__("slowed", duration)
-        self.damage = damage
-
-    def on_end_turn(self, battle, character):
-        damage = character.deal_damage(battle, self.damage, "poison")
-        return character.name + " was dealt " + str(damage) + " poison damage.\n"
-
-
 class Burn(Effect):
 
     def __init__(self, duration, caster, target, ratio):
         super().__init__("burning", duration)
+        self.caster = caster
         self.damage = caster.get_magic() * ratio
 
     def on_end_turn(self, battle, character):
-        damage = character.deal_damage(battle, self.damage, "fire")
+        damage = character.deal_damage(battle, self.caster, self.damage, "fire")
         return "\n" + character.name + " burned for " + str(damage) + " damage."
 
 class Armor(Effect):
@@ -85,6 +75,37 @@ class Armor(Effect):
             return value*self.mod
         return value
 
+class ReduceArmor(Effect):
+
+    def __init__(self, duration, mod):
+        super().__init__("melted", duration)
+        self.mod = mod
+
+    def on_get_stat(self, value, stat_type):
+        if stat_type == "defense":
+            return value*self.mod
+        return value
+
+class Combo(Effect):
+
+    def __init__(self, duration, caster, target, spell, mod):
+        super().__init__("melted", duration)
+        self.caster = caster
+        self.target = target
+        self.spell = spell
+        self.mod = mod
+        self.counter = 1
+
+    def on_damage(self, battle, source, damage, damage_type):
+        if source == self.caster and self.spell == source.next_move.name:
+            self.counter += 1
+            return damage * self.mod ** self.counter
+        elif source == self.caster:
+            self.duration = 0
+            return damage
+        else:
+            return damage
+
 
 class Fallen(Effect):
 
@@ -93,3 +114,16 @@ class Fallen(Effect):
 
     def on_start_turn(self, battle, character):
         return (False,"")
+
+class Amplify(Effect):
+
+    def __init__(self, duration, effect_type, mod, name):
+        super().__init__(name, duration)
+        self.mod = mod
+        self.effect_type
+
+    def on_damage(self, battle, source, damage, damage_type):
+        if damage_type == self.effect_type:
+            return damage * self.mod
+
+        return damage
