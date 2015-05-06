@@ -8,7 +8,9 @@ class Monster:
         self.difficulty = difficulty
         self.effects = []
         self.args = []
-        self.moves = [MonsterDamage("monster-damage", self)]
+        self.fallen = False
+        self.moves = []
+        self.add_move(MonsterDamage("monster-damage"))
         self.default_move = Move("do-nothing")
         self.next_move = self.default_move
         self.name = ""
@@ -149,6 +151,10 @@ class Monster:
 
     def add_effect(self, effect):
         self.effects.append(effect)
+
+    def add_move(self, move):
+        self.moves.append(move)
+        move.set_caster(self)
 
     def toString(self):
         return 'Name: %s\nAttack: %d\nDefense: %d\nHealth: %d\nSpeed: %d'\

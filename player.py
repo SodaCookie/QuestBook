@@ -1,20 +1,25 @@
 from item import *
-from moves import *
 from constants import *
+from builtin_moves import *
+import math
 
 class Player:
 
     def __init__(self, name):
         self.name = name
         self.effects = []
-        self.moves = [Damage("attack", self), DamageSlow("ice-blast", 2, self), Block("block", 2, self), Shield("shield", 3, self), Toxic("toxic", 3, self, 2)]
+        self.moves = []
+        self.add_move(magic_skills[0])
+        self.add_move(magic_skills[1])
+        self.add_move(magic_skills[2])
+        self.fallen = False
         self.drop = None # tmp variable for dropped items
         self.args = []
         self.default_move = self.moves[0]
         self.next_move = self.default_move
         self.attack = 5
         self.defense = 0
-        self.magic = 0
+        self.magic = 5
         self.current_health = 100
         self.health = 100
         self.speed = 10
@@ -46,9 +51,10 @@ class Player:
         self.effects = []
         self.update()
 
-    def equip(item):
+    def equip(self, item):
         """Try to equip item into the slot"""
         self.equipment[item.slot] = item
+        self.update()
 
     def handle(self, battle):
         log = ""
@@ -97,7 +103,7 @@ class Player:
         return int(magic)
 
     def get_level(self):
-        return int(LEVEL_CONSTANT*math.sqrt(xp))+1
+        return int(LEVEL_CONSTANT*math.sqrt(self.experience))+1
 
     def is_level_up(self):
         if self.get_level() > self.level:
@@ -130,6 +136,10 @@ class Player:
 
     def add_effect(self, effect):
         self.effects.append(effect)
+
+    def add_move(self, move):
+        self.moves.append(move)
+        move.set_caster(self)
 
     def save(self):
         pass

@@ -73,6 +73,8 @@ class Battle:
                 log += msg
                 if cont == False:
                     skip_player_turn = True
+            if character.fallen:
+                skip_player_turn = True
             if skip_player_turn:
                 continue
             log += character.handle(self) + "\n"
@@ -86,26 +88,28 @@ class Battle:
                                 break
                         else:
                             log += character.name + " has fallen.\nVictory!\n"
+                            character.fallen = True
                             self.battle_won = True
+                            return log
                     elif type(character) == Player:
                         for effect in character.effects:
                             if not effect.on_death(self, character):
                                 break
                         else:
-                            log += character.name + " has fallen.\n"
-                            character.add_effect(Fallen(999))
-                            if len(self.getDeadPlayers()) == len(self.party):
-                                self.battle_lost = True
-                                log += "All members of your party have fallen. Game Over"
-                                return log
+                            if character not in self.getDeadPlayers(): # Just died
+                                log += character.name + " has fallen.\n"
+                                character.fallen = True
+                                if len(self.getDeadPlayers()) == len(self.party):
+                                    self.battle_lost = True
+                                    log += "All members of your party have fallen. Game Over"
+                                    return log
         return log
 
     def getDeadPlayers(self):
         dead_players = []
         for member in self.party:
-            for effect in member.effects:
-                if effect.name == "fallen":
-                    dead_players.append(member)
+            if member.fallen:
+                dead_players.append(member)
         return dead_players
 
     def handleFinish(self):
@@ -118,9 +122,12 @@ class Battle:
                     send += "@@" + member.name
                     send += "@@" + "You found: " + tmp_item.name + "\n" + tmp_item.getStats()
                     send += "\nTo equip type \\yes, to drop the item type \\no. Note starting a new game will remove your drop."
+                else:
+                    send += "@@" + member.name
+                    send += "@@" + "Your character is dead."
         if self.battle_lost:
             for member in self.party:
-                send += "@@" + player.name
+                send += "@@" + member.name
                 send += "@@" + "Your character is dead."
         return send
 
@@ -141,13 +148,12 @@ class Game:
             return self.return_data
 
     def inputCommand(self, command):
-
         #================== STATUS CHECK OF PARTY ======================#
         try:
             cur_party = self._get_party(command)
             if cur_party: # if current batttle exists
                 send = self.handleBattle(command)
-                if self._get_party(command).battle_won or self._get_party(command).battle_lost:
+                if cur_party.battle_won or cur_party.battle_lost:
                     raise BattleComplete
                 return send
         except KeyError:
@@ -156,6 +162,7 @@ class Game:
             send += self._get_party(command).handleFinish()
             for player in self._get_party(command).getDeadPlayers():
                 self.removePlayer(player)
+            send += "@@zuckerbot@@end " + command[0]
             self._remove_party(command)
             return send
 
@@ -171,17 +178,16 @@ class Game:
             for name in command[4:]:
                 if self.players.get(name) == None:
                     self.players[name] = Player(name)
-                tmp_party.append(copy.deepcopy(self.players[name]))
+                tmp_party.append(self.players[name])
             if command[3] == "normal": difficulty = 1
             elif command[3] == "hard": difficulty = 2
             elif command[3] == "boss": difficulty = 3
             self.battles[command[0]] = Battle(tmp_party, difficulty)
-            send = "Battle commencing!...\n"+self.battles[command[1]].monster.toString()
+            send = "Battle commencing!...\n"+self.battles[command[0]].monster.toString()
             for member in tmp_party:
                 send += "@@" + member.name
                 send += "@@" + member.getStats()
             return send
-
         elif command[2] == "stop-game":
             return "You are not in a game! Why are you trying to stop it!"
         elif command[0] == command[1]: # Player chat
@@ -189,9 +195,13 @@ class Game:
                 if self.players[command[1]].drop != None:
                     self.players[command[1]].equip(self.players[command[1]].drop)
                     self.players[command[1]].drop = None # Remove the item from drop
+                    return "Successfully equiped your item.@@zuckerbot@@end" + command[0]
             elif command[2] == "no":
                 if self.players[command[1]].drop != None:
                     self.players[command[1]].drop = None # Remove the item from drop
+                    return "Item was dropped.@@zuckerbot@@end" + command[0]
+            else:
+                return "Command doesn't exist. Please type in help for information."
         else:
             return "Command doesn't exist. Please type in help for information."
 
@@ -199,7 +209,7 @@ class Game:
         cur_party = self._get_party(command)
         if command[2] == "stop-game":
             self._remove_party(command)
-            return "Game session ended."
+            return "Game session ended.@@zuckerbot@@end" + command[0]
         elif command[2] == "next":
             return cur_party.nextTurn()
         else:
@@ -213,6 +223,7 @@ class Game:
         self.players = {}
 
     def removePlayer(self, player):
+        print(self.players)
         self.players.pop(player.name)
 
     def _get_party(self, command):
@@ -221,6 +232,7 @@ class Game:
 
     def _remove_party(self, command):
         """Removes the current party"""
+        print(self.battles, command)
         self.battles.pop(command[0])
 
     def quitGame(self):
@@ -232,7 +244,7 @@ if __name__ == "__main__":
     PORT = 34567
     handler = GameHTTPRequestHandler
     try:
-        httpd = server.HTTPServer(("", PORT), handler)
+        httpd = server.HTTPServer(("192.168.1.106", PORT), handler)
         print('Started http server')
         httpd.serve_forever()
     except KeyboardInterrupt:
