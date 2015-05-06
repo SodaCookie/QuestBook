@@ -77,7 +77,7 @@ class Battle:
                 skip_player_turn = True
             if skip_player_turn:
                 continue
-            log += character.handle(self) + "\n"
+            log += character.handle(self)
             for effect in character.effects:
                 log += effect.on_end_turn(self, character)
             for character in tmp_list:
@@ -223,7 +223,6 @@ class Game:
         self.players = {}
 
     def removePlayer(self, player):
-        print(self.players)
         self.players.pop(player.name)
 
     def _get_party(self, command):
@@ -232,7 +231,6 @@ class Game:
 
     def _remove_party(self, command):
         """Removes the current party"""
-        print(self.battles, command)
         self.battles.pop(command[0])
 
     def quitGame(self):

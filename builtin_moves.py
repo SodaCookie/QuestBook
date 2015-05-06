@@ -1,6 +1,6 @@
 from moves import *
 
 magic_skills = list()
-magic_skills.append(DamageMagic("fireball", 1, "fire"))
-magic_skills.append(DamageMagic("lava-burst", 1, "fire", 1.5))
-magic_skills.append(DamageRecoilMagic("solar-flare", 0.1, 1, "fire", 3.0))
+magic_skills.append(MagicDamage("fireball", "fire", 1, 1.0))
+magic_skills.append(MagicDamage("lava-burst", "fire", 1, 1.5))
+magic_skills.append(Recoil(MagicDamage("solar-flare", "fire", 1, 3.0), "fire", 0.1))

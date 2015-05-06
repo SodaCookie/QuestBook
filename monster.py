@@ -99,19 +99,19 @@ class Monster:
     def deal_damage(self, battle, damage, damage_type):
         for effect in self.effects:
             damage = effect.on_damage(battle, damage, damage_type)
-        damage = damage - self.get_defense()
+        damage = round(damage - self.get_defense())
         if damage <= 0:
             damage = 1
         self.current_health -= damage
         return damage
 
     def handle(self, battle):
-        log = ""
 
         # Determining what move to do (AI Portion)
         self.next_move = random.choice(self.moves)
 
-        log += self.next_move.cast(battle, *self.args)
+        self.next_move.cast(battle, *self.args)
+        log = self.next_move.get_message()
 
         # Remove the effect after the duration is gone
         for effect in self.effects[:]:
