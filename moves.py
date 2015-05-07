@@ -124,6 +124,24 @@ class Heal(Move):
             self.message("Couldn't find a target.")
 
 
+class HealSelf(Move):
+
+    def __init__(self, name, percentage, scale=1):
+        super().__init__(name)
+        self.percentage = percentage
+        self.scale = scale
+
+    def get_target(self, *args):
+        return self.caster
+
+    def _cast(self, *args):
+        if self.target:
+            healing_done = self.target.apply_heal(args[0], self.caster, self.percentage*self.scale*self.caster.get_magic())
+            self.message(self.target.name + " healed for " + str(healing_done) + ".")
+        else:
+            self.message("Couldn't find a target.")
+
+
 class MagicDamage(Move):
 
     def __init__(self, name, dtype="magic", percentage=0.8, scale=1):
