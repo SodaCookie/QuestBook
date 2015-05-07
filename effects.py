@@ -17,7 +17,7 @@ class Effect:
     def on_damage(self, battle, source, damage, damage_type):
         return damage
 
-    def on_heal(self, battle, heal):
+    def on_heal(self, battle, source, heal):
         return heal
 
     def on_death(self, battle, character):
@@ -29,10 +29,10 @@ class Effect:
         return ""
 
 
-class Blocking(Effect):
+class Block(Effect):
 
-    def __init__(self, duration, percentage, damage_type):
-        super().__init__("blocking", duration)
+    def __init__(self, duration, percentage, damage_type, name):
+        super().__init__(name, duration)
         self.percentage = percentage
         self.damage_type = damage_type
 
@@ -77,8 +77,30 @@ class Armor(Effect):
 
 class ReduceArmor(Effect):
 
-    def __init__(self, duration, mod):
-        super().__init__("melted", duration)
+    def __init__(self, duration, mod, name):
+        super().__init__(name, duration)
+        self.mod = mod
+
+    def on_get_stat(self, value, stat_type):
+        if stat_type == "defense":
+            return value*self.mod
+        return value
+
+class ReduceAttack(Effect):
+
+    def __init__(self, duration, mod, name):
+        super().__init__(name, duration)
+        self.mod = mod
+
+    def on_get_stat(self, value, stat_type):
+        if stat_type == "attack":
+            return value*self.mod
+        return value
+
+class IncreaseDefense(Effect):
+
+    def __init__(self, duration, mod, name):
+        super().__init__(name, duration)
         self.mod = mod
 
     def on_get_stat(self, value, stat_type):
@@ -107,14 +129,6 @@ class Combo(Effect):
             return damage
 
 
-class Fallen(Effect):
-
-    def __init__(self, duration):
-        super().__init__("fallen", duration)
-
-    def on_start_turn(self, battle, character):
-        return (False,"")
-
 class Amplify(Effect):
 
     def __init__(self, duration, effect_type, mod, name):
@@ -125,5 +139,4 @@ class Amplify(Effect):
     def on_damage(self, battle, source, damage, damage_type):
         if damage_type == self.effect_type:
             return damage * self.mod
-
         return damage

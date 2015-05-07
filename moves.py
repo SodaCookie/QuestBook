@@ -87,7 +87,9 @@ class CastEffect(Move):
         if self.target:
             tmp_effect = self.effect(self.duration, *self.args)
             self.target.add_effect(tmp_effect)
-            self.message(self.text)
+            text = self.text.replace("[caster]", self.caster.name)
+            text = text.replace("[target]", self.target.name)
+            self.message(text)
         else:
             self.message("Couldn't find a target.")
 
@@ -103,7 +105,23 @@ class Damage(Move):
         if self.target:
             damage_dealt = self.target.deal_damage(args[0], self.caster, self.scale*self.caster.get_attack(), self.dtype)
             self.message(self.caster.name + " dealt " + str(damage_dealt) + " to " + self.target.name + ".")
-        self.message("Couldn't find a target.")
+        else:
+            self.message("Couldn't find a target.")
+
+
+class Heal(Move):
+
+    def __init__(self, name, percentage, scale=1):
+        super().__init__(name)
+        self.percentage = percentage
+        self.scale = scale
+
+    def _cast(self, *args):
+        if self.target:
+            healing_done = self.target.apply_heal(args[0], self.caster, self.percentage*self.scale*self.caster.get_magic())
+            self.message(self.target.name + " healed for " + str(healing_done) + ".")
+        else:
+            self.message("Couldn't find a target.")
 
 
 class MagicDamage(Move):
@@ -122,6 +140,38 @@ class MagicDamage(Move):
             self.message("Couldn't find a target.")
 
 
+class Compare(Move):
+
+    def __init__(self, name, compare, move1, move2):
+        super().__init__(name)
+        self.move1 = move1
+        self.move2 = move2
+        self.compare = compare # if returns 1 then do the move1 else move 2
+        self.last_move_cast = None
+
+    def set_caster(self, caster):
+        super().set_caster(caster)
+        self.move1.set_caster(caster)
+        self.move2.set_caster(caster)
+
+    def get_message(self):
+        return self.last_move_cast.get_message()
+
+    def _cast(self, *args):
+        if self.target:
+            if hasattr(self.compare, "__call__"):
+                if self.compare(self.caster, self.target):
+                    self.move1.cast(*args)
+                    self.last_move_cast = self.move1
+                else:
+                    self.move2.cast(*args)
+                    self.last_move_cast = self.move2
+            else:
+                raise TypeError("'compare' object not callable")
+        else:
+            self.message("Couldn't find a target.")
+
+
 class Recoil(Move):
 
     def __init__(self, name, rdtype="physical", recoil=0.1):
@@ -132,6 +182,43 @@ class Recoil(Move):
     def _cast(self, *args):
         damage_dealt = self.caster.deal_damage(args[0], self.caster, self.recoil*self.caster.get_attack(), self.rdtype)
         self.message(self.caster.name + " took " + str(damage_dealt) + " in recoil.")
+
+class Repeat(Move):
+
+    def __init__(self, name, repeat):
+        super().__init__(name)
+        self.repeat = repeat
+
+    def get_message(self):
+        return self.msg[:-1]
+
+    def _cast(self, *args):
+        if self.prev:
+            for i in range(self.repeat):
+                self.prev.cast(*args)
+                self.message(self.prev.get_message()+"\n")
+
+
+class Message(Move):
+
+    def __init__(self, name, text="", before=False, stop=False):
+        super().__init__(name)
+        self.text = text
+        self.stop = stop # if true will cut out all messages placed before
+        self.before = before # if true will place your message before the casts
+
+    def get_message(self):
+        if self.prev and not self.stop:
+            if self.before:
+                self.msg = self.msg + "\n" + self.prev.get_message()
+            else:
+                self.msg = self.prev.get_message() + "\n" + self.msg
+        return self.msg
+
+    def _cast(self, *args):
+        text = self.text.replace("[caster]", self.caster.name)
+        text = text.replace("[target]", self.target.name)
+        self.message(text)
 
 
 class MonsterDamage(Move):

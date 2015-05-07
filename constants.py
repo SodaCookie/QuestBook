@@ -4,5 +4,6 @@ DEFENSE_HEURISTIC = 1 # Used to gauge how useful defense is as a stat
 HEALTH_HEURISTIC = 0.2 # Used to gauge how useful health is as a stat
 SPEED_HEURISTIC = 5 # Used to gauge how useful speed is as a stat
 MAGIC_HEURISTIC = 0.5  # Used to gauge how useful magic is as a stat
+RESIST_HEURISTIC = 0.5 # Used to gauge how useful resist is as a stat
 LEVEL_CONSTANT = 0.2 # affects the how people level up
 POINTS_PER_LEVEL = 10 # Amount of points distributed to stats per level up

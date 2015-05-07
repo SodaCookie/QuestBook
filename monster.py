@@ -18,6 +18,7 @@ class Monster:
         self.monstertype = ""
         self.attack = 0
         self.defense = 0
+        self.resist = 0
         self.magic = 0
         self.current_health = 100
         self.health = 100
@@ -96,10 +97,22 @@ class Monster:
         elif self.difficulty == 3:
             self.name = "%(prefix)s %(monster)s of %(suffix)s" % (choices)
 
+    def apply_heal(self, battle, source, heal):
+        for effect in self.effects:
+            heal = effect.on_heal(battle, source, heal)
+        heal = round(heal)
+        if self.current_health + heal > self.health:
+            heal = self.health - self.current_health
+        self.current_health += heal
+        return heal
+
     def deal_damage(self, battle, source, damage, damage_type):
         for effect in self.effects:
             damage = effect.on_damage(battle, source, damage, damage_type)
-        damage = round(damage - self.get_defense())
+        if damage_type == "physical":
+            damage = round(damage - self.get_defense())
+        elif damage_type in ("magic", "fire", "frost", "nature"):
+            damage = round(damage - self.get_resist())
         if damage <= 0:
             damage = 1
         self.current_health -= damage
@@ -134,6 +147,12 @@ class Monster:
             defense = effect.on_get_stat(defense, "defense")
         return defense
 
+    def get_resist(self):
+        resist = self.resist
+        for effect in self.effects:
+            resist = effect.on_get_stat(resist, "resist")
+        return int(resist)
+
     def get_speed(self):
         speed = self.speed
         for effect in self.effects:
@@ -155,6 +174,12 @@ class Monster:
                 eff.duration = effect.duration
                 return
         self.effects.append(effect)
+
+    def has_effect(self, ename):
+        for effect in self.effects:
+            if ename == effect.name:
+                return True
+        return False
 
     def add_move(self, move):
         self.moves.append(move)
