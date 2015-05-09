@@ -65,8 +65,8 @@ class Move:
         self.target = self.get_target(*args)
         if self.prev:
             self.prev.cast(*args)
-        if random.randint(0,99) <= self.cur_accuracy: # accuracy roll
-            if random.randint(0, 99) < self.cur_crit: # crit roll
+        if random.randint(0, 99) <= self.cur_accuracy:  # accuracy roll
+            if random.randint(0, 99) < self.cur_crit:  # crit roll
                 self._crit(*args)
             else:
                 self._cast(*args)
@@ -88,12 +88,12 @@ class Move:
         pass
 
 
-class CastDynamicEffect(Move): # Dynamic effects get the castor's and target's stats past on to them
+class CastDynamicEffect(Move):  # Dynamic effects get the castor's and target's stats past on to them
 
     def __init__(self, name, effect, duration, text="", *args, **kwargs):
         super().__init__(name, **kwargs)
         self.effect = effect
-        self.text = text # To be displaced when sucessful cast
+        self.text = text  # To be displaced when sucessful cast
         self.duration = duration
         self.args = args
 
@@ -101,7 +101,9 @@ class CastDynamicEffect(Move): # Dynamic effects get the castor's and target's s
         if self.target:
             tmp_effect = self.effect(self.duration, self.caster, self.target, *self.args)
             self.target.add_effect(tmp_effect)
-            self.message(self.text)
+            text = self.text.replace("[caster]", self.caster.name)
+            text = text.replace("[target]", self.target.name)
+            self.message(text)
         else:
             self.message("Couldn't find a target.")
 
@@ -111,7 +113,7 @@ class CastEffect(Move):
     def __init__(self, name, effect, duration, text="", *args, **kwargs):
         super().__init__(name, **kwargs)
         self.effect = effect
-        self.text = text # To be displaced when sucessful cast
+        self.text = text  # To be displaced when sucessful cast
         self.duration = duration
         self.args = args
 
@@ -151,7 +153,7 @@ class Damage(Move):
 
 class BonusCritDamage(Damage):
 
-    def __init__(self, name, dtype="physical",  scale, bonus_crit=2.5):
+    def __init__(self, name, dtype="physical", scale=1, bonus_crit=2.5):
         super(BonusCritDamage, self).__init__()
         self.arg = arg
 
@@ -297,12 +299,13 @@ class Recoil(Move):
 
     def __init__(self, name, rdtype="physical", recoil=0.1, **kwargs):
         super().__init__(name, **kwargs)
-        self.rdtype = rdtype # Return damage type
+        self.rdtype = rdtype  # Return damage type
         self.recoil = recoil
 
     def _cast(self, *args):
         damage_dealt = self.caster.deal_damage(args[0], self.caster, self.recoil*self.caster.get_attack(), self.rdtype)
         self.message(self.caster.name + " took " + str(damage_dealt) + " in recoil.")
+
 
 class Repeat(Move):
 
@@ -343,6 +346,12 @@ class Message(Move):
 
 
 class CastEffectSelf(CastEffect):
+
+    def get_target(self, *args):
+        return self.caster
+
+
+class CastDynamicEffectSelf(CastDynamicEffect):
 
     def get_target(self, *args):
         return self.caster

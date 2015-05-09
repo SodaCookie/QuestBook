@@ -263,7 +263,7 @@ if __name__ == "__main__":
     PORT = 34567
     handler = GameHTTPRequestHandler
     try:
-        httpd = server.HTTPServer(("192.168.1.106", PORT), handler)
+        httpd = server.HTTPServer(("192.168.1.101", PORT), handler)
         print('Started http server')
         httpd.serve_forever()
     except KeyboardInterrupt:

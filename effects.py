@@ -140,15 +140,27 @@ class ReduceAttack(Effect):
         return value
 
 
-class IncreaseDefense(Effect):
+class ReduceMagic(Effect):
 
-    def __init__(self, duration, mod, name):
+    def __init__(self, duration, caster, target, mod, name):
+        super().__init__(name, duration)
+        self.amount = mod * caster.get_magic()
+
+    def on_get_stat(self, value, stat_type):
+        if stat_type == "magic":
+            return value - self.amount if value - self.amount > 0 else 0
+        return value
+
+
+class IncreaseStat(Effect):
+
+    def __init__(self, duration, mod, stat_type, name):
         super().__init__(name, duration)
         self.mod = mod
 
     def on_get_stat(self, value, stat_type):
-        if stat_type == "defense":
-            return value*self.mod
+        if stat_type == stat_type:
+            return value * self.mod
         return value
 
 
@@ -207,3 +219,14 @@ class LowerAccuracy(Effect):
 
     def on_cast(self, battle, source, move):
         move.set_accuracy(move.accuracy-self.amount)
+
+
+class SolarBeam(Effect):
+    def __init__(self, duration, caster, target):
+        super().__init__("solar-beam", duration)
+        self.target = target
+        self.caster = caster
+
+    def on_start_turn(self, battle, character):
+        dam = self.target.deal_damage(battle, self.caster, self.caster.get_magic() * 2, "nature")
+        return (False, self.caster.name + " dealt " + str(dam) + " nature damage to " + self.target.name + ".\n")

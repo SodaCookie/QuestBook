@@ -9,20 +9,26 @@ class Player:
         self.name = name
         self.effects = []
         self.moves = []
-        self.add_move(magic_skills[0])
-        self.add_move(magic_skills[1])
-        self.add_move(magic_skills[5])
+        self.add_move(abilities["solar-beam"])
         self.fallen = False
-        self.drop = None # tmp variable for dropped items
+        self.drop = None  # tmp variable for dropped items
         self.args = []
         self.default_move = self.moves[0]
         self.next_move = self.default_move
+
         self.attack = 5
         self.defense = 0
         self.magic = 5
         self.current_health = 100
         self.health = 100
         self.speed = 5
+
+        self.base_attack = 5
+        self.base_defense = 0
+        self.base_magic = 5
+        self.base_health = 100
+        self.base_speed = 5
+
         self.experience = 0
         self.level = 1
 
