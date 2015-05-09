@@ -3,6 +3,13 @@ class Effect:
     def __init__(self, name, duration):
         self.name = name
         self.duration = duration
+        self.active = True
+
+    def remove(self):
+        """When called any subsequent calls to this effect will be ignored as well as removed
+        useful for 1 time effects"""
+        self.duration = 0
+        self.active = False
 
     def on_get_stat(self, value, stat_type):
         """Any time a character is asked for a stat this function will be called
@@ -20,6 +27,9 @@ class Effect:
     def on_heal(self, battle, source, heal):
         return heal
 
+    def on_cast(self, battle, source, move):
+        pass
+
     def on_death(self, battle, character):
         """If truly dead then return True"""
         return True
@@ -27,6 +37,9 @@ class Effect:
     def on_end_turn(self, battle, character):
         """That is the end of the characters turn (not the WHOLE turn), returns message"""
         return ""
+
+    def __str__(self):
+        return "%s - Turn(s)%d" % (self.name.replace("-", " ").title(), self.duration)
 
 
 class Block(Effect):
@@ -42,6 +55,19 @@ class Block(Effect):
         return damage
 
 
+class BlockAllSingle(Effect):
+
+    def __init__(self, duration, percentage, name):
+        super().__init__(name, duration)
+        self.percentage = percentage
+
+    def on_damage(self, battle, source, damage, damage_type):
+        if damage_type == "true":
+            return damage
+        self.remove()
+        return damage*self.percentage
+
+
 class Slow(Effect):
 
     def __init__(self, duration, mod):
@@ -52,6 +78,7 @@ class Slow(Effect):
         if stat_type == "speed":
             return value*self.mod
         return value
+
 
 class Burn(Effect):
 
@@ -64,6 +91,7 @@ class Burn(Effect):
         damage = character.deal_damage(battle, self.caster, self.damage, "fire")
         return "\n" + character.name + " burned for " + str(damage) + " damage."
 
+
 class Poison(Effect):
 
     def __init__(self, duration, caster, target, ratio):
@@ -74,6 +102,7 @@ class Poison(Effect):
     def on_end_turn(self, battle, character):
         damage = character.deal_damage(battle, self.caster, self.damage, "nature")
         return "\n" + character.name + " poisoned for " + str(damage) + " damage."
+
 
 class Armor(Effect):
 
@@ -86,6 +115,7 @@ class Armor(Effect):
             return value*self.mod
         return value
 
+
 class ReduceArmor(Effect):
 
     def __init__(self, duration, mod, name):
@@ -96,6 +126,7 @@ class ReduceArmor(Effect):
         if stat_type == "defense":
             return value*self.mod
         return value
+
 
 class ReduceAttack(Effect):
 
@@ -108,6 +139,7 @@ class ReduceAttack(Effect):
             return value*self.mod
         return value
 
+
 class IncreaseDefense(Effect):
 
     def __init__(self, duration, mod, name):
@@ -118,6 +150,7 @@ class IncreaseDefense(Effect):
         if stat_type == "defense":
             return value*self.mod
         return value
+
 
 class Combo(Effect):
 
@@ -151,3 +184,26 @@ class Amplify(Effect):
         if damage_type == self.effect_type:
             return damage * self.mod
         return damage
+
+
+class BoostSingle(Effect):
+
+    def __init__(self, duration, stype, mod, name):
+        super().__init__(name, duration)
+        self.mod = mod
+        self.stype = stype
+
+    def on_get_stat(self, value, stat_type):
+        if self.stype == stat_type:
+            return value*self.mod
+        return value
+
+
+class LowerAccuracy(Effect):
+
+    def __init__(self, duration, amount, name):
+        super().__init__(name, duration)
+        self.amount = amount
+
+    def on_cast(self, battle, source, move):
+        move.set_accuracy(move.accuracy-self.amount)

@@ -53,6 +53,19 @@ class Battle:
         for member in self.party:
             if command[1] == member.name:
                 player = member
+        if command[2] == "get-stats":
+            return "@@%s@@%s" % (player.name, player.getStats())
+        elif command[2] == "get-monster":
+            return "@@%s@@%s" % (player.name, self.monster.toString())
+        elif command[2] == "get-health":
+            return "@@%s@@Health: %d/%d" % (player.name, player.current_health, player.health)
+        elif command[2] == "get-effects":
+            send = "@@%s@@" % player.name
+            if len(player.effects) == 0:
+                send += "You currently have no effects on you.\n"
+            for effect in player.effects:
+                send += str(effect) + "\n"
+            return send[:-1]
         for move in player.moves:
             if move.name == command[2]:
                 player.next_move = move
@@ -69,6 +82,8 @@ class Battle:
         for character in tmp_list:
             skip_player_turn = False
             for effect in character.effects:
+                if not effect.active:
+                    continue
                 cont, msg = effect.on_start_turn(self, character)
                 log += msg
                 if cont == False:
@@ -79,11 +94,15 @@ class Battle:
                 continue
             log += character.handle(self) + "\n"
             for effect in character.effects:
+                if not effect.active:
+                    continue
                 log += effect.on_end_turn(self, character)
             for character in tmp_list:
                 if character.current_health <= 0:
                     if type(character) == Monster:
                         for effect in character.effects:
+                            if not effect.active:
+                                continue
                             if not effect.on_death(self, character):
                                 break
                         else:
@@ -93,6 +112,8 @@ class Battle:
                             return log
                     elif type(character) == Player:
                         for effect in character.effects:
+                            if not effect.active:
+                                continue
                             if not effect.on_death(self, character):
                                 break
                         else:

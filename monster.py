@@ -97,34 +97,17 @@ class Monster:
         elif self.difficulty == 3:
             self.name = "%(prefix)s %(monster)s of %(suffix)s" % (choices)
 
-    def apply_heal(self, battle, source, heal):
-        for effect in self.effects:
-            heal = effect.on_heal(battle, source, heal)
-        heal = round(heal)
-        if self.current_health + heal > self.health:
-            heal = self.health - self.current_health
-        self.current_health += heal
-        return heal
-
-    def deal_damage(self, battle, source, damage, damage_type):
-        for effect in self.effects:
-            damage = effect.on_damage(battle, source, damage, damage_type)
-        if damage_type == "physical":
-            damage = round(damage - self.get_defense())
-        elif damage_type in ("magic", "fire", "frost", "nature"):
-            damage = round(damage - self.get_resist())
-        if damage <= 0:
-            damage = 1
-        self.current_health -= damage
-        return damage
-
     def handle(self, battle):
 
         # Determining what move to do (AI Portion)
         self.next_move = random.choice(self.moves)
-
+        for effect in self.effects:
+            if not effect.active:
+                continue
+            effect.on_cast(battle, self, self.next_move)
+        log = "%s uses %s:\n" % (self.name, self.next_move.name.replace("-", " ").title())
         self.next_move.cast(battle, *self.args)
-        log = self.next_move.get_message()
+        log += self.next_move.get_message()
 
         # Remove the effect after the duration is gone
         for effect in self.effects[:]:
@@ -135,35 +118,72 @@ class Monster:
         self.args = []
         return log
 
+    def apply_heal(self, battle, source, heal):
+        for effect in self.effects:
+            if not effect.active:
+                continue
+            heal = effect.on_heal(battle, source, heal)
+        heal = round(heal)
+        heal = int(heal*(random.randint(100-HEAL_VARIATION, 100+HEAL_VARIATION)/100))
+        if self.current_health + heal > self.health:
+            heal = self.health - self.current_health
+        self.current_health += heal
+        return heal
+
+    def deal_damage(self, battle, source, damage, damage_type):
+        for effect in self.effects:
+            if not effect.active:
+                continue
+            damage = effect.on_damage(battle, source, damage, damage_type)
+        if damage_type == "physical":
+            damage = round(damage - self.get_defense())
+        elif damage_type in ("magic", "fire", "frost", "nature"):
+            damage = round(damage - self.get_resist())
+        if damage <= 0:
+            damage = 1
+        damage = int(damage*(random.randint(100-DAMAGE_VARIATION, 100+DAMAGE_VARIATION)/100))
+        self.current_health -= damage
+        return damage
+
     def get_attack(self):
         attack = self.attack
         for effect in self.effects:
+            if not effect.active:
+                continue
             attack = effect.on_get_stat(attack, "attack")
-        return attack
+        return int(attack)
 
     def get_defense(self):
         defense = self.defense
         for effect in self.effects:
+            if not effect.active:
+                continue
             defense = effect.on_get_stat(defense, "defense")
-        return defense
-
-    def get_resist(self):
-        resist = self.resist
-        for effect in self.effects:
-            resist = effect.on_get_stat(resist, "resist")
-        return int(resist)
+        return int(defense)
 
     def get_speed(self):
         speed = self.speed
         for effect in self.effects:
+            if not effect.active:
+                continue
             speed = effect.on_get_stat(speed, "speed")
-        return speed
+        return int(speed)
+
+    def get_resist(self):
+        resist = self.resist
+        for effect in self.effects:
+            if not effect.active:
+                continue
+            resist = effect.on_get_stat(resist, "resist")
+        return int(resist)
 
     def get_magic(self):
         magic = self.magic
         for effect in self.effects:
+            if not effect.active:
+                continue
             magic = effect.on_get_stat(magic, "magic")
-        return magic
+        return int(magic)
 
     def set_args(*args):
         self.args = args
