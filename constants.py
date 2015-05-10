@@ -9,3 +9,5 @@ LEVEL_CONSTANT = 0.2 # affects the how people level up
 POINTS_PER_LEVEL = 10 # Amount of points distributed to stats per level up
 DAMAGE_VARIATION = 20 # Variation of damage
 HEAL_VARIATION = 20 # Variation of healing
+MAX_LEVEL = 15 # Maximum level that each player can have
+EXPERIENCE_PER_BATTLE = 30 # Experience per battle

@@ -23,6 +23,7 @@ class Monster:
         self.current_health = 100
         self.health = 100
         self.speed = 10
+        self.power = power
         with open("prefix.txt", "r") as f:
             self.prefix = f.read().split("\n")
         with open("monster.txt", "r") as f:
@@ -76,6 +77,7 @@ class Monster:
     #     self.health = round(power*r3/s/HEALTH_HEURISTIC)
     #     self.speed = round(power*r4/s/SPEED_HEURISTIC)
     #     self.magic = round(power*r5/s/MAGIC_HEURISTIC)
+    #     self.resist = round(power*r6/s/RESIST_HEURISTIC)
     #     self.current_health = self.health
 
     def generateName(self):
@@ -139,9 +141,9 @@ class Monster:
             damage = round(damage - self.get_defense())
         elif damage_type in ("magic", "fire", "frost", "nature"):
             damage = round(damage - self.get_resist())
+        damage = int(damage*(random.randint(100-DAMAGE_VARIATION, 100+DAMAGE_VARIATION)/100))
         if damage <= 0:
             damage = 1
-        damage = int(damage*(random.randint(100-DAMAGE_VARIATION, 100+DAMAGE_VARIATION)/100))
         self.current_health -= damage
         return damage
 
@@ -206,5 +208,5 @@ class Monster:
         move.set_caster(self)
 
     def toString(self):
-        return 'Name: %s\nAttack: %d\nDefense: %d\nHealth: %d\nSpeed: %d'\
-     % (self.name, self.attack, self.defense, self.health, self.speed)
+        return 'Name: %s\nAttack: %d\nDefense: %d\nHealth: %d\nSpeed: %d\nResist: %d'\
+     % (self.name, self.attack, self.defense, self.health, self.speed, self.resist)

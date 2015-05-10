@@ -1,12 +1,11 @@
 import random
 import pickle
+import os
 import http.server as server
 import urllib.parse as parse
 import text_game
 import time
 import copy
-import effects
-import moves
 from item import *
 from monster import *
 from player import *
@@ -45,7 +44,8 @@ class Battle:
         for player in self.party:
             player.config_for_new_battle()
         self.difficulty = difficulty
-        self.monster = Monster(difficulty, "", party)
+        avg_power = sum([member.calculate_power() for member in party])/len(party)
+        self.monster = Monster(difficulty, "", party)#, power = round(avg_power))
         self.battle_lost = False
         self.battle_won = False
 
@@ -138,11 +138,14 @@ class Battle:
         if self.battle_won:
             for member in self.party:
                 if member not in self.getDeadPlayers():
-                    tmp_item = Item(50, self.difficulty)
+                    tmp_item = Item(self.monster.power, self.difficulty)
                     member.drop = tmp_item
-                    send += "@@" + member.name
-                    send += "@@" + "You found: " + tmp_item.name + "\n" + tmp_item.getStats()
-                    send += "\nTo equip type \\yes, to drop the item type \\no. Note starting a new game will remove your drop."
+                    gained_experience = member.give_experience(EXPERIENCE_PER_BATTLE)
+                    send += "@@" + member.name + "@@You gained %d experience.\n========================\n" %gained_experience
+                    if member.is_level_up():
+                        send += member.level_up() + "\n========================"
+                    send += "You found: " + tmp_item.name + "\n" + tmp_item.getStats()
+                    send += "\nTo equip type \\yes, to drop the item type \\no. Note starting a new game will remove your drop.\n========================"
                 else:
                     send += "@@" + member.name
                     send += "@@" + "Your character is dead."
@@ -159,6 +162,8 @@ class Game:
         # name, attack, defense, speed, health, slot, other
         self.battles = {}
         self.players = {}
+        if os.path.exists("player.data"):
+            self.load()
         self.return_data = ""
 
     def handle(self, command):
@@ -254,19 +259,27 @@ class Game:
         """Removes the current party"""
         self.battles.pop(command[0])
 
-    def quitGame(self):
+    def save(self, file):
+        with open("player.data", "wb") as file:
+            pickle.dump(self.players, file)
+
+    def load(self, file):
+        with open("player.data", "rb") as file:
+            self.players = pickle.load(file)
+
+    def quit(self):
         with open("players.dat", "wb") as f:
-            pickle.dump(self.players, f)
+            pass
 
 if __name__ == "__main__":
     g = Game()
     PORT = 34567
     handler = GameHTTPRequestHandler
     try:
-        httpd = server.HTTPServer(("192.168.1.101", PORT), handler)
+        httpd = server.HTTPServer(("localhost", PORT), handler)
         print('Started http server')
         httpd.serve_forever()
     except KeyboardInterrupt:
         print('^C received, shutting down server')
-        g.quitGame()
+        g.quit()
         httpd.socket.close()

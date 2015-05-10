@@ -1,6 +1,10 @@
 class Effect:
 
     def __init__(self, name, duration):
+        """'name' is the identifier used to identify the effect
+        duration is used to indicate how long the effect will last on the target.
+        Durations for each effect on a target are decreased by 1 after that
+         character's turn"""
         self.name = name
         self.duration = duration
         self.active = True
