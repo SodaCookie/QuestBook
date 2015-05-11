@@ -66,6 +66,13 @@ class Battle:
             for effect in player.effects:
                 send += str(effect) + "\n"
             return send[:-1]
+        elif command[2] == "get-equip":
+            send = "@@%s@@" % player.name
+            if len(command) > 3 and command[3]:
+                send += player.get_equip(command[3])
+            else:
+                send += player.get_equip()
+            return send
         for move in player.moves:
             if move.name == command[2]:
                 player.next_move = move
@@ -143,7 +150,7 @@ class Battle:
                     gained_experience = member.give_experience(EXPERIENCE_PER_BATTLE)
                     send += "@@" + member.name + "@@You gained %d experience.\n========================\n" %gained_experience
                     if member.is_level_up():
-                        send += member.level_up() + "\n========================"
+                        send += member.level_up() + "\n========================\n"
                     send += "You found: " + tmp_item.name + "\n" + tmp_item.getStats()
                     send += "\nTo equip type \\yes, to drop the item type \\no. Note starting a new game will remove your drop.\n========================"
                 else:
@@ -219,9 +226,17 @@ class Game:
         elif command[0] == command[1]: # Player chat
             if command[2] == "yes":
                 if self.players[command[1]].drop != None:
-                    self.players[command[1]].equip(self.players[command[1]].drop)
-                    self.players[command[1]].drop = None # Remove the item from drop
-                    return "Successfully equiped your item.@@zuckerbot@@end" + command[0]
+                    successful = False
+                    if len(command) > 3:
+                        successful = self.players[command[1]].equip(self.players[command[1]].drop, command[3])
+                    else:
+                        successful = self.players[command[1]].equip(self.players[command[1]].drop)
+                    if successful:
+                        self.players[command[1]].drop = None # Remove the item from drop
+                        send = "Successfully equiped your item.@@zuckerbot@@end" + command[0]
+                    else:
+                        send = "Equip unsuccessful. Some types of items (extra and hand) require an additional argument after yes indicted which slot to add into. Example: /yes hand1 to equip to first hand slot."
+                    return send
             elif command[2] == "no":
                 if self.players[command[1]].drop != None:
                     self.players[command[1]].drop = None # Remove the item from drop
@@ -259,17 +274,19 @@ class Game:
         """Removes the current party"""
         self.battles.pop(command[0])
 
-    def save(self, file):
+    def save(self):
         with open("player.data", "wb") as file:
             pickle.dump(self.players, file)
 
-    def load(self, file):
+    def load(self,):
         with open("player.data", "rb") as file:
-            self.players = pickle.load(file)
+            try:
+                self.players = pickle.load(file)
+            except EOFError: # Empty player list is made
+                self.players = {}
 
     def quit(self):
-        with open("players.dat", "wb") as f:
-            pass
+        self.save()
 
 if __name__ == "__main__":
     g = Game()

@@ -86,6 +86,7 @@ class Item:
                     itemtypes.append([item, paradigm, slot, base, attack, defense, resist, health, speed, magic, ability, moves])
         # Choosing the item type of choice
         self.chosen_item = random.choice(itemtypes)
+        self.slot = self.chosen_item[2]
         # Naming the item
         with open("itemprefix.txt", "r") as f:
             data = f.read().split("\n")

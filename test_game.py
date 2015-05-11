@@ -23,3 +23,4 @@ while not quitting:
             print(game.inputCommand(command.split(" ")))
         except:
             traceback.print_exc()
+game.quit()
