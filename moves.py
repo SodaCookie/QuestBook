@@ -88,6 +88,24 @@ class Move:
         pass
 
 
+class SelfMove(Move):
+
+    def get_target(self, *args):
+        self.target = self.caster
+
+
+class PartyMove(Move):
+
+    def get_target(self, *args):
+        self.target = args[0].party
+
+
+class RandomPartyMove(Move):
+
+    def get_target(self, *args):
+        self.target = random.choice(args[0].party)
+
+
 class CastDynamicEffect(Move):  # Dynamic effects get the castor's and target's stats past on to them
 
     def __init__(self, name, effect, duration, text="", *args, **kwargs):
@@ -167,28 +185,17 @@ class Heal(Move):
 
     def _cast(self, *args):
         if self.target:
+            if self.target.fallen:
+                self.message(self.target.name + " has fallen. Cannot be healed until revived.")
+                return
             healing_done = self.target.apply_heal(args[0], self.caster, self.percentage*self.scale*self.caster.get_magic())
             self.message(self.target.name + " healed for " + str(healing_done) + ".")
         else:
             self.message("Couldn't find a target.")
 
 
-class HealSelf(Move):
-
-    def __init__(self, name, percentage, scale=1, **kwargs):
-        super().__init__(name, **kwargs)
-        self.percentage = percentage
-        self.scale = scale
-
-    def get_target(self, *args):
-        return self.caster
-
-    def _cast(self, *args):
-        if self.target:
-            healing_done = self.target.apply_heal(args[0], self.caster, self.percentage*self.scale*self.caster.get_magic())
-            self.message(self.target.name + " healed for " + str(healing_done) + ".")
-        else:
-            self.message("Couldn't find a target.")
+class HealSelf(SelfMove, Heal):
+    pass
 
 
 class MagicDamage(Move):
@@ -213,6 +220,7 @@ class MagicDamage(Move):
             self.message(self.caster.name + " dealt " + str(damage_dealt) + " " + self.dtype + " damage to " + self.target.name + ".")
         else:
             self.message("Couldn't find a target.")
+
 
 class ScaleDamage(Move):
 
@@ -307,6 +315,27 @@ class Recoil(Move):
         self.message(self.caster.name + " took " + str(damage_dealt) + " in recoil.")
 
 
+class PartyHeal(PartyMove):
+
+    def __init__(self, name, percentage, scale, **kwargs):
+        super().__init__(name, **kwargs)
+        self.percentage = percentage
+        self.scale = scale
+
+    def _cast(self, *args):
+        for member in self.target:
+            if self.target.fallen:
+                self.message(self.target.name + " has fallen. Cannot be healed until revived.")
+                continue
+            healing_done = member.apply_heal(args[0], self.caster, self.percentage*self.scale*self.caster.get_magic())
+            self.message(self.target.name + " healed for " + str(healing_done) + ".\n")
+
+
+class RandomHeal(RandomPartyMove, Heal):
+    pass
+
+
+
 class Repeat(Move):
 
     def __init__(self, name, repeat, **kwargs):
@@ -345,16 +374,12 @@ class Message(Move):
         self.message(text)
 
 
-class CastEffectSelf(CastEffect):
-
-    def get_target(self, *args):
-        return self.caster
+class CastEffectSelf(SelfMove, CastEffect):
+    pass
 
 
-class CastDynamicEffectSelf(CastDynamicEffect):
-
-    def get_target(self, *args):
-        return self.caster
+class CastDynamicEffectSelf(SelfMove, CastDynamicEffect):
+    pass
 
 
 class MonsterDamage(Move):

@@ -19,6 +19,9 @@ skill_tree["earth-strike"] = ["barrier"]
 skill_tree["solar-strike"] = ["enhance"]
 skill_tree["lunar-strike"] = ["pacify"]
 skill_tree["heal"] = []
+skill_tree["greater-heal"] = ["multi-heal", "dot-heal"]
+skill_tree["multi-heal"] = ["party-heal", "bounce-heal"]
+skill_tree["dot-heal"] = ["heal-bonus", "percent-heal"]
 skill_tree["mark"] = []
 
 abilities = dict()

@@ -14,6 +14,8 @@ class Player:
         self.add_move(testing)
         self.add_move(abilities["magic-bolt"])
         self.add_move(abilities["block"])
+        self.add_move(abilities["blizzard"])
+        self.add_move(abilities["barrier"])
         self.fallen = False
         self.drop = None  # tmp variable for dropped items
         self.args = []
@@ -114,6 +116,8 @@ class Player:
         heal = int(heal*(random.randint(100-HEAL_VARIATION, 100+HEAL_VARIATION)/100))
         if self.current_health + heal > self.health:
             heal = self.health - self.current_health
+        if self.fallen:
+            heal = 0
         self.current_health += heal
         return heal
 
