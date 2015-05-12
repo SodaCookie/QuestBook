@@ -2,28 +2,24 @@ from moves import *
 from effects import *
 
 skill_tree = dict()
-skill_tree["magic-bolt"] = dict()
-skill_tree["magic-bolt"]["fireball"] = dict()
-skill_tree["magic-bolt"]["fireball"]["lava-burst"] = dict()
-skill_tree["magic-bolt"]["fireball"]["lava-burst"]["solar-flare"] = dict()
-skill_tree["magic-bolt"]["fireball"]["lava-burst"]["flash-inferno"] = dict()
-skill_tree["magic-bolt"]["fireball"]["cinder-barrage"] = dict()
-skill_tree["magic-bolt"]["fireball"]["cinder-barrage"]["melting-strike"] = dict()
-skill_tree["magic-bolt"]["fireball"]["cinder-barrage"]["hot-blaze"] = dict()
-skill_tree["magic-bolt"]["ice-blast"] = dict()
-skill_tree["magic-bolt"]["ice-blast"]["artice-lance"] = dict()
-skill_tree["magic-bolt"]["ice-blast"]["artice-lance"]["deep-freeze"] = dict()
-skill_tree["magic-bolt"]["ice-blast"]["artice-lance"]["encase"] = dict()
-skill_tree["magic-bolt"]["ice-blast"]["flash-freeze"] = dict()
-skill_tree["magic-bolt"]["ice-blast"]["flash-freeze"]["pierce"] = dict()
-skill_tree["magic-bolt"]["ice-blast"]["flash-freeze"]["blizzard"] = dict()
-skill_tree["magic-bolt"]["thorn"] = dict()
-skill_tree["magic-bolt"]["thorn"]["poison"] = dict()
-
-skill_tree["magic-bolt"]["thorn"]["drain"] = dict()
-skill_tree["magic-bolt"]["thorn"]["drain"]["solar-beam"] = dict()
-skill_tree["magic-bolt"]["thorn"]["drain"]["leech"] = dict()
-skill_tree["heal"] = dict()
+skill_tree["attack"] = ["magic-blot", "heal", "smash", "mark"]
+skill_tree["magic-bolt"] = ["fireball", "ice-blast", "thorn"]
+skill_tree["fireball"] = ["lava-burst", "cinder-barrage"]
+skill_tree["lava-burst"] = ["solar-flare", "flash-inferno"]
+skill_tree["cinder-barrage"] = ["melting-strike", "hot-blaze"]
+skill_tree["ice-blast"] = ["arctic-lance", "flash-freeze"]
+skill_tree["arctic-lance"] = ["deep-freeze", "encase"]
+skill_tree["flash-freeze"] = ["pierce", "blizzard"]
+skill_tree["thorn"] = ["drain", "poison"]
+skill_tree["drain"] = ["solar-beam", "leech"]
+skill_tree["poison"] = []
+skill_tree["smash"] = ["flurry"]
+skill_tree["flurry"] = ["earth-strike", "solar-strike", "lunar-strike"]
+skill_tree["earth-strike"] = ["barrier"]
+skill_tree["solar-strike"] = ["enhance"]
+skill_tree["lunar-strike"] = ["pacify"]
+skill_tree["heal"] = []
+skill_tree["mark"] = []
 
 abilities = dict()
 testing = Damage("ben-attack", "true", 100)
@@ -60,3 +56,4 @@ abilities["drain"] = HealSelf(MagicDamage("thorn", "nature", 0.6, 1.0), 0.2, 0.5
 abilities["leech"] = CastEffectSelf(CastDynamicEffect("leech", ReduceMagic, 2, "[caster] leeched magic from [target].", 0.2, "leeched"), IncreaseStat, 2, "", 1.2, "magic", "stolen-magic")
 abilities["solar-beam"] = CastDynamicEffectSelf("solar-beam", SolarBeam, 2, "[caster] is charging solar-beam.")
 abilities["heal"] = Heal("heal", 0.8, 1)
+abilities["mark"] = CastEffect("mark", AmplifyAll, 2, "[target] is marked for death", 1.2, "marked")

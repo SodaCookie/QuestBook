@@ -201,6 +201,15 @@ class Amplify(Effect):
             return damage * self.mod
         return damage
 
+class AmplifyAll(Effect):
+
+    def __init__(self, duration, mod, name):
+        super().__init__(name, duration)
+
+    def on_damage(self, battle, source, damage, damage_type):
+        if damage_type == "true":
+            return damage
+        return damage * self.mod
 
 class BoostSingle(Effect):
 

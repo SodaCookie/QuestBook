@@ -132,6 +132,7 @@ class Item:
             data = f.read().split("\n")
             itemsuffixes = []
             for line in data:
+                stats = line.split(",")
                 name = stats[0]
                 rarity = stats[1]
                 paradigm = stats[2]
