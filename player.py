@@ -13,7 +13,7 @@ class Player:
         self.moves = []
         self.add_move(testing)
         self.add_move(abilities["magic-bolt"])
-        self.add_move(abilities["block"])
+        self.add_move(abilities["dot-heal"])
         self.add_move(abilities["blizzard"])
         self.add_move(abilities["barrier"])
         self.fallen = False

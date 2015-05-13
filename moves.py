@@ -3,7 +3,7 @@ import effects
 import types
 import constants
 
-class Move:
+class Move(object):
 
     def __init__(self, name, **kwargs):
         if type(name) == str:
@@ -91,19 +91,19 @@ class Move:
 class SelfMove(Move):
 
     def get_target(self, *args):
-        self.target = self.caster
+       return self.caster
 
 
 class PartyMove(Move):
 
     def get_target(self, *args):
-        self.target = args[0].party
+        return args[0].party
 
 
 class RandomPartyMove(Move):
 
     def get_target(self, *args):
-        self.target = random.choice(args[0].party)
+        return random.choice(args[0].party)
 
 
 class CastDynamicEffect(Move):  # Dynamic effects get the castor's and target's stats past on to them
@@ -333,7 +333,6 @@ class PartyHeal(PartyMove):
 
 class RandomHeal(RandomPartyMove, Heal):
     pass
-
 
 
 class Repeat(Move):

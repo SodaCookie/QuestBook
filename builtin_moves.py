@@ -59,4 +59,6 @@ abilities["drain"] = HealSelf(MagicDamage("thorn", "nature", 0.6, 1.0), 0.2, 0.5
 abilities["leech"] = CastEffectSelf(CastDynamicEffect("leech", ReduceMagic, 2, "[caster] leeched magic from [target].", 0.2, "leeched"), IncreaseStat, 2, "", 1.2, "magic", "stolen-magic")
 abilities["solar-beam"] = CastDynamicEffectSelf("solar-beam", SolarBeam, 2, "[caster] is charging solar-beam.")
 abilities["heal"] = Heal("heal", 0.8, 1)
+abilities["greater-heal"] = Heal("greater-heal", 1, 1.2)
+abilities["dot-heal"] = CastDynamicEffect("dot-heal", HealOverTime, 4, "[target] is recovering health per turn.", 0.8, 0.2)
 abilities["mark"] = CastEffect("mark", AmplifyAll, 2, "[target] is marked for death", 1.2, "marked")

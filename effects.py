@@ -234,6 +234,19 @@ class LowerAccuracy(Effect):
         move.set_accuracy(move.accuracy-self.amount)
 
 
+class HealOverTime(Effect):
+
+    def __init__(self, duration, caster, target, percentage, scale):
+        super().__init__("recovering", duration)
+        self.amount = caster.get_magic()*percentage*scale
+
+    def on_start_turn(self, battle, character):
+        if character.fallen:
+            return
+        healing_done = character.apply_heal(battle, self.caster, self.amount)
+        return (True, character.name + "healed for " + str(healing_done) + ".")
+
+
 class SolarBeam(Effect):
     def __init__(self, duration, caster, target):
         super().__init__("solar-beam", duration)
