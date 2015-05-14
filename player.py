@@ -19,8 +19,7 @@ class Player:
         self.fallen = False
         self.drop = None  # tmp variable for dropped items
         self.args = []
-        self.default_move = self.moves[0]
-        self.next_move = self.default_move
+        self.next_move = self.moves[0]
         self.skill_points = 0
 
         self.attack = 10
@@ -94,7 +93,6 @@ class Player:
             effect.duration -= 1
             if effect.duration <= 0:
                 self.effects.remove(effect)
-        self.next_move = self.default_move
         self.args = []
         return log
 
@@ -114,11 +112,12 @@ class Player:
             heal = effect.on_heal(battle, source, heal)
         heal = round(heal)
         heal = int(heal*(random.randint(100-HEAL_VARIATION, 100+HEAL_VARIATION)/100))
-        if self.current_health + heal > self.health:
-            heal = self.health - self.current_health
         if self.fallen:
             heal = 0
-        self.current_health += heal
+        if self.current_health + heal > self.health:
+            self.current_health = self.health
+        else:
+            self.current_health += heal
         return heal
 
     def calculate_power(self):

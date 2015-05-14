@@ -106,6 +106,15 @@ class RandomPartyMove(Move):
         return random.choice(args[0].party)
 
 
+class Mimic(Move):
+
+    def _cast(self, *args):
+        if self.target:
+            self.target.next_move.cast(*args)
+        else:
+            self.message("Couldn't find a target.")
+
+
 class CastDynamicEffect(Move):  # Dynamic effects get the castor's and target's stats past on to them
 
     def __init__(self, name, effect, duration, text="", *args, **kwargs):
@@ -189,6 +198,22 @@ class Heal(Move):
                 self.message(self.target.name + " has fallen. Cannot be healed until revived.")
                 return
             healing_done = self.target.apply_heal(args[0], self.caster, self.percentage*self.scale*self.caster.get_magic())
+            self.message(self.target.name + " healed for " + str(healing_done) + ".")
+        else:
+            self.message("Couldn't find a target.")
+
+class PercentHeal(Move):
+
+    def __init__(self, name, percentage, **kwargs):
+        super().__init__(name, **kwargs)
+        self.percentage = percentage
+
+    def _cast(self, *args):
+        if self.target:
+            if self.target.fallen:
+                self.message(self.target.name + " has fallen. Cannot be healed until revived.")
+                return
+            healing_done = self.target.apply_heal(args[0], (self.target.heal-self.current_health)*self.percentage)
             self.message(self.target.name + " healed for " + str(healing_done) + ".")
         else:
             self.message("Couldn't find a target.")

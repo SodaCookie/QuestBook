@@ -156,14 +156,45 @@ class ReduceMagic(Effect):
         return value
 
 
-class IncreaseStat(Effect):
+class AmplifyHeal(Effect):
 
-    def __init__(self, duration, mod, stat_type, name):
+    def __init__(self, duration, mod, name):
         super().__init__(name, duration)
         self.mod = mod
 
+    def on_heal(self, battle, source, heal):
+        return heal*self.mod
+
+
+class Repel(Effect):
+
+    def on_damage(self, battle, source, damage, damage_type):
+        if damage_type in ("magic", "fire", "frost", "nature"):
+            source.deal_damage(battle, source, damage, damage_type)
+            self.remove()
+            return 0
+        return damage
+
+
+class Repel(Effect):
+
+    def on_damage(self, battle, source, damage, damage_type):
+        if damage_type in ("magic", "fire", "frost", "nature"):
+            source.deal_damage(battle, source, damage, damage_type)
+            self.remove()
+            return 0
+        return damage
+
+
+class IncreaseStat(Effect):
+
+    def __init__(self, duration, mod, stype, name):
+        super().__init__(name, duration)
+        self.mod = mod
+        self.stype = stype
+
     def on_get_stat(self, value, stat_type):
-        if stat_type == stat_type:
+        if self.stype == stat_type:
             return value * self.mod
         return value
 
