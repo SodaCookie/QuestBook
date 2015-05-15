@@ -197,6 +197,19 @@ class Monster:
                 return
         self.effects.append(effect)
 
+    def remove_effect(self, ename):
+        for eff in self.effects[:]:
+            if eff.name == ename:
+                self.effects.remove(eff)
+                return True
+        return False
+
+    def remove_last_effect(self):
+        if self.effects:
+            self.effects = self.effects[:-1]
+            return True
+        return False
+
     def has_effect(self, ename):
         for effect in self.effects:
             if ename == effect.name:

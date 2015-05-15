@@ -264,6 +264,19 @@ Refer to help if you need help spending points." % (counter,\
                 return
         self.effects.append(effect)
 
+    def remove_effect(self, ename):
+        for eff in self.effects[:]:
+            if eff.name == ename:
+                self.effects.remove(eff)
+                return True
+        return False
+
+    def remove_last_effect(self):
+        if self.effects:
+            self.effects = self.effects[:-1]
+            return True
+        return False
+
     def add_move(self, move):
         self.moves.append(move)
         move.set_caster(self)

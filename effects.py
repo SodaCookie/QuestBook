@@ -176,6 +176,26 @@ class Repel(Effect):
         return damage
 
 
+class Shield(Effect):
+
+    def __init__(self, duration, caster, target,  name, percentage, amount=0):
+        if amount:
+            self.amount = amount
+        else:
+            self.amount = target.health*percentage
+
+    def on_damage(self, battle, source, damage, damage_type):
+        if amount >= damage:
+            amount  -= damage
+            damage = 0
+        else:
+            damage -= amount
+            amount = 0
+        if amount  <= 0:
+            self.remove()
+        return damage
+
+
 class Repel(Effect):
 
     def on_damage(self, battle, source, damage, damage_type):

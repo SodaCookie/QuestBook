@@ -2,6 +2,7 @@ import random
 import effects
 import types
 import constants
+import itertools
 
 class Move(object):
 
@@ -93,6 +94,37 @@ class SelfMove(Move):
     def get_target(self, *args):
        return self.caster
 
+
+class RemoveEffect(Move):
+
+    def __init__(self, name, amount=1, enames=[], **kwargs):
+        super().__init__(name, **kwargs)
+        self.amount = amount
+        self.enames = enames
+
+    def _cast(self, *args):
+        if self.target:
+            if len(self.enames) == 0: # remove any move
+                if self.amount > 0: # finite
+                    for i in range(self.amount):
+                        self.target.remove_last_effect()
+                else: # remove all
+                    self.target.effects = []
+            else: # we have a list of effecst to remove
+                if self.amount > 0:
+                    count = 0
+                    for cur_effect in self.enames:
+                        while count < self.amount and self.target.has_effect(cur_effect):
+                            self.target.remove_effect(cur_effect)
+                            count += 1
+                        if count >= self.amount:
+                            break
+                else:
+                    for cur_effect in self.enames:
+                        while self.target.has_effect(cur_effect):
+                            self.target.remove_effect(cur_effect)
+        else:
+            self.message("Couldn't find a target.")
 
 class PartyMove(Move):
 
