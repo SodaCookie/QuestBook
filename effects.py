@@ -131,6 +131,7 @@ class ReduceArmor(Effect):
             return value*self.mod
         return value
 
+
 class ReduceAttack(Effect):
 
     def __init__(self, duration, mod, name):
@@ -175,21 +176,9 @@ class Repel(Effect):
         return damage
 
 
-class Share(Effect):
-
-    def __init__(self, duration, caster, target, percentage, partner):
-        super()__init__("sharing-pain", duration)
-        self.percentage = percentage
-        self.partner = caster
-
-    def on_damage(self, battle, source, damage, damage_type):
-        self.partner.deal_damage(battle, source, damage*self.percentage, damage_type)
-        return damage*(1-self.percentage)
-
-
 class Shield(Effect):
 
-    def __init__(self, duration, caster, target,  name, percentage, amount=0built):
+    def __init__(self, duration, caster, target,  name, percentage, amount=0):
         if amount:
             self.amount = amount
         else:
@@ -215,56 +204,6 @@ class Repel(Effect):
             self.remove()
             return 0
         return damage
-
-
-class BloodPact(Effect):
-
-    def __init__(self, duration):
-        super()__init__("blood-pact", duration)
-
-    def on_start_turn(self, battle, character):
-        if character.current_heal > 1:
-            damage = charcter.current_health - round(character.current_heal * 0.75)
-            if character.current_health - damage < 1:
-                damage = character.current_health - 1
-            character.deal_damage(battle, character, damage, "true")
-        return (True, "%s has bleed for %d damage." % (character.name, ))
-
-    def on_damage(self, battle, source, damage, damage_type):
-        if damage_type == "true":
-            return damage
-        return damage*0.7
-
-    def on_get_stat(self, value, stat_type):
-        return value*1.5
-
-
-class SwapDefense(Effect):
-
-    def __init__(self, duration, caster, target):
-        super().__init__("swap-defense", duration)
-        self.target = target
-
-    def on_get_stat(self, value, stat_type):
-        if stat_type == "defense":
-            return self.target.get_resist()
-        elif stat_type == "resist":
-            return self.target.get_defense()
-        return value
-
-
-class SwapAttack(Effect):
-
-    def __init__(self, duration, caster, target):
-        super().__init__("swap-attack", duration)
-        self.target = target
-
-    def on_get_stat(self, value, stat_type):
-        if stat_type == "attack":
-            return self.target.get_magic()
-        elif stat_type == "magic":
-            return self.target.get_attack()
-        return value
 
 
 class IncreaseStat(Effect):
