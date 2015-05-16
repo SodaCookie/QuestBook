@@ -95,6 +95,25 @@ class SelfMove(Move):
        return self.caster
 
 
+class SelfDefaultMove(Move):
+
+    def get_target(self, *args):
+        target = None
+        if len(args) <= 1: # No argument was given
+            self.target = self.caster
+            return target
+        else:
+            if args[1] == "monster":
+                target = args[0].monster
+                return target
+            else:
+                for member in args[0].party:
+                    if args[1] == member.name:
+                        target = member
+                        return target
+        return target
+
+
 class RemoveEffect(Move):
 
     def __init__(self, name, amount=1, enames=[], **kwargs):
@@ -360,6 +379,45 @@ class Compare(Move):
             self.message("Couldn't find a target.")
 
 
+class CastDynamicEffectParty(PartyMove, CastDynamicEffect):
+
+    def _cast(self, *args):
+        for member in self.target:
+            tmp_effect = self.effect(self.duration, *self.args)
+            member.add_effect(tmp_effect)
+            text = self.text.replace("[caster]", self.caster.name)
+            text = text.replace("[target]", member.name)
+            self.message(text)
+
+
+class DamageParty(PartyMove, Damage):
+
+    def _cast(self, *args)
+        for member in self.target:
+            damage_dealt = member.deal_damage(args[0], self.caster, self.scale*self.caster.get_attack(), self.dtype)
+            self.message(self.caster.name + " dealt " + str(damage_dealt) + " to " + member.name + ".")
+
+    def _crit(self, *args):
+        for member in self.target:
+            damage_dealt = member.deal_damage(args[0], self.caster, 2*self.scale*self.caster.get_attack(), self.dtype)
+            self.message("Critical hit!\n")
+            self.message(self.caster.name + " dealt " + str(damage_dealt) + " to " + member.name + ".")
+
+
+class MagicDamageParty(PartyMove, MagicDamage):
+
+    def _cast(self, *args):
+        for member in self.target:
+            damage_dealt = member.deal_damage(args[0], self.caster, self.scale*(self.caster.get_attack() * (1-self.percentage) + self.caster.get_magic() * self.percentage), self.dtype)
+            self.message(self.caster.name + " dealt " + str(damage_dealt) + " " + self.dtype + " damage to " + member.name + ".")
+
+    def _crit(self, *args):
+        for member in self.target:
+            damage_dealt = member.deal_damage(args[0], self.caster, 2*self.scale*(self.caster.get_attack() * (1-self.percentage) + self.caster.get_magic() * self.percentage), self.dtype)
+            self.message("Critical hit!\n")
+            self.message(self.caster.name + " dealt " + str(damage_dealt) + " " + self.dtype + " damage to " + member.name + ".")
+
+
 class Recoil(Move):
 
     def __init__(self, name, rdtype="physical", recoil=0.1, **kwargs):
@@ -372,7 +430,7 @@ class Recoil(Move):
         self.message(self.caster.name + " took " + str(damage_dealt) + " in recoil.")
 
 
-class PartyHeal(PartyMove):
+class HealParty(PartyMove):
 
     def __init__(self, name, percentage, scale, **kwargs):
         super().__init__(name, **kwargs)
